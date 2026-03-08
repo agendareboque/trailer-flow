@@ -12,20 +12,17 @@ import { ptBR } from 'date-fns/locale';
 import { CheckCircle, XCircle, CreditCard, Pencil, Tag } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { EditRentalDialog } from '@/components/dialogs/EditRentalDialog';
+import { CheckoutRentalDialog } from '@/components/dialogs/CheckoutRentalDialog';
 
 export default function RentalsPage() {
   const { rentals, clients, trailers } = useStore();
   const [filterStatus, setFilterStatus] = useState('all');
   const [editingRental, setEditingRental] = useState<Rental | null>(null);
+  const [checkoutRental, setCheckoutRental] = useState<Rental | null>(null);
 
   const filtered = rentals.filter(r =>
     filterStatus === 'all' || r.status === filterStatus
   );
-
-  const handleComplete = (rentalId: string) => {
-    store.completeRental(rentalId);
-    toast({ title: 'Aluguel concluído!', description: 'Km adicionados ao reboque automaticamente.' });
-  };
 
   const handleCancel = (rentalId: string) => {
     store.cancelRental(rentalId);
@@ -117,7 +114,7 @@ export default function RentalsPage() {
                       <Button size="sm" variant="ghost" onClick={() => setEditingRental(rental)} title="Editar">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Concluir">
+                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => setCheckoutRental(rental)} title="Dar Baixa">
                         <CheckCircle className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleCancel(rental.id)} title="Cancelar">
@@ -143,6 +140,14 @@ export default function RentalsPage() {
           open={!!editingRental}
           onOpenChange={(v) => !v && setEditingRental(null)}
           rental={editingRental}
+        />
+      )}
+
+      {checkoutRental && (
+        <CheckoutRentalDialog
+          open={!!checkoutRental}
+          onOpenChange={(v) => !v && setCheckoutRental(null)}
+          rental={checkoutRental}
         />
       )}
     </AppLayout>
