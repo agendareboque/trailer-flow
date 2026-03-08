@@ -170,7 +170,12 @@ export default function RentalsPage() {
                       R$ {(rental.valor || 0).toFixed(2)}
                     </p>
                   </div>
-                  <StatusBadge status={rental.status || 'reservado'} />
+                  <StatusBadge status={getDisplayStatus(rental)} />
+                  {isOverdue(rental) && (
+                    <span className="flex items-center gap-1 text-xs text-destructive font-semibold">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Atrasado
+                    </span>
+                  )}
                   {(rental.status === 'reservado' || rental.status === 'em_uso') && (
                     <div className="flex gap-1">
                       {rental.status === 'em_uso' && (
