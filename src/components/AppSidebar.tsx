@@ -65,7 +65,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <span className="font-heading text-lg font-bold text-sidebar-primary-foreground">
-              TrailerRent
+              Agendareboque
             </span>
           )}
         </div>

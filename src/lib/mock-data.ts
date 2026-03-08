@@ -137,8 +137,8 @@ export const mockEmployees: Employee[] = [
 ];
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Carlos Admin', email: 'admin@trailerrent.com', role: 'admin' },
-  { id: '2', name: 'Maria Funcionária', email: 'maria@trailerrent.com', role: 'employee' },
+  { id: '1', name: 'Carlos Admin', email: 'admin@agendareboque.com', role: 'admin' },
+  { id: '2', name: 'Maria Funcionária', email: 'maria@agendareboque.com', role: 'employee' },
 ];
 
 export const mockModels: TrailerModel[] = [
