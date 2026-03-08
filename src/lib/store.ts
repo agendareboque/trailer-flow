@@ -45,6 +45,7 @@ export const store = {
   getMaintenance: () => maintenance,
   getModels: () => models,
   getEmployeePermissions: () => employeePermissions,
+  getEmployees: () => employees,
 
   getTrailerById: (id: string) => trailers.find(t => t.id === id),
   getClientById: (id: string) => clients.find(c => c.id === id),
