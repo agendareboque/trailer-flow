@@ -47,6 +47,7 @@ export const store = {
   getModels: () => models,
   getEmployeePermissions: () => employeePermissions,
   getEmployees: () => employees,
+  getSales: () => sales,
 
   getTrailerById: (id: string) => trailers.find(t => t.id === id),
   getClientById: (id: string) => clients.find(c => c.id === id),
