@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { isAfter, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
 
 interface Aluguel {
@@ -81,9 +82,22 @@ export default function RentalsPage() {
     return () => window.removeEventListener('rentals-updated', handler);
   }, []);
 
-  const filtered = rentals.filter(r =>
-    filterStatus === 'all' || r.status === filterStatus
-  );
+  const isOverdue = (rental: Aluguel) => {
+    if (!rental.data_devolucao) return false;
+    if (rental.status === 'finalizado' || rental.status === 'cancelado') return false;
+    return isAfter(startOfDay(new Date()), new Date(rental.data_devolucao));
+  };
+
+  const getDisplayStatus = (rental: Aluguel) => {
+    if (isOverdue(rental)) return 'atrasado';
+    return rental.status || 'reservado';
+  };
+
+  const filtered = rentals.filter(r => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'atrasado') return isOverdue(r);
+    return r.status === filterStatus;
+  });
 
   const handleCancel = async (id: string) => {
     const rental = rentals.find(r => r.id === id);
@@ -128,7 +142,7 @@ export default function RentalsPage() {
             <SelectItem value="reservado">Reservados</SelectItem>
             <SelectItem value="em_uso">Em Uso</SelectItem>
             <SelectItem value="finalizado">Finalizados</SelectItem>
-            <SelectItem value="cancelado">Cancelados</SelectItem>
+            <SelectItem value="atrasado">Atrasados</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -138,7 +152,7 @@ export default function RentalsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((rental, i) => (
-            <motion.div key={rental.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow">
+            <motion.div key={rental.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className={`rounded-xl border p-5 hover:shadow-md transition-shadow ${isOverdue(rental) ? 'bg-destructive/5 border-destructive/30' : 'bg-card'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="font-semibold font-heading">{rental.cliente_nome}</h3>
@@ -156,10 +170,15 @@ export default function RentalsPage() {
                       R$ {(rental.valor || 0).toFixed(2)}
                     </p>
                   </div>
-                  <StatusBadge status={rental.status || 'reservado'} />
-                  {(rental.status === 'reservado' || rental.status === 'em_uso') && (
+                  <StatusBadge status={getDisplayStatus(rental)} />
+                  {isOverdue(rental) && (
+                    <span className="flex items-center gap-1 text-xs text-destructive font-semibold">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Atrasado
+                    </span>
+                  )}
+                  {(rental.status === 'reservado' || rental.status === 'em_uso' || isOverdue(rental)) && (
                     <div className="flex gap-1">
-                      {rental.status === 'em_uso' && (
+                      {(rental.status === 'em_uso' || isOverdue(rental)) && (
                         <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
                           <CheckCircle className="h-4 w-4" />
                         </Button>
