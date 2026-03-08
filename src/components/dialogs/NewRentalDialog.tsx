@@ -50,10 +50,18 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const selectedTrailer = trailers.find(t => t.id === reboqueId);
   const dailyRate = selectedTrailer?.valor_diaria || 0;
 
-  const days = useMemo(() => {
-    if (!dataRetirada || !dataDevolucao) return 0;
-    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  const dateError = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao) return '';
+    if (new Date(dataDevolucao) < new Date(dataRetirada)) {
+      return 'A data de devolução não pode ser anterior à data de retirada.';
+    }
+    return '';
   }, [dataRetirada, dataDevolucao]);
+
+  const days = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao || dateError) return 0;
+    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  }, [dataRetirada, dataDevolucao, dateError]);
 
   const basePrice = dailyRate * days;
 
@@ -143,6 +151,10 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const handleSubmit = async () => {
     if (!clienteId || !reboqueId || !dataRetirada || !dataDevolucao) {
       toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (dateError) {
+      toast.error(dateError);
       return;
     }
     if (conflict) {
@@ -254,6 +266,11 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
             </div>
           </div>
 
+          {/* Date validation error */}
+          {dateError && (
+            <p className="text-sm text-destructive font-medium">{dateError}</p>
+          )}
+
           {/* Conflict warning */}
           {conflict && conflictDetails.length > 0 && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
@@ -322,7 +339,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict}>
+            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict || !!dateError}>
               {loading ? 'Salvando...' : 'Registrar Aluguel'}
             </Button>
           </div>
