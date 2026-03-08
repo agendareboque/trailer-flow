@@ -71,25 +71,68 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
     }
     let cancelled = false;
     setCheckingConflict(true);
-    supabase
-      .from('alugueis')
-      .select('id, data_retirada, data_devolucao, clientes(nome)')
-      .eq('reboque_id', reboqueId)
-      .in('status', ['ativo', 'reservado'])
-      .lt('data_retirada', dataDevolucao)
-      .gt('data_devolucao', dataRetirada)
-      .then(({ data }) => {
-        if (!cancelled) {
-          const items = (data || []) as any[];
-          setConflict(items.length > 0);
-          setConflictDetails(items.map((r: any) => ({
-            cliente_nome: r.clientes?.nome || 'Desconhecido',
-            data_retirada: r.data_retirada,
-            data_devolucao: r.data_devolucao,
-          })));
+
+    const checkConflicts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('alugueis')
+          .select('id, data_retirada, data_devolucao, cliente_id')
+          .eq('reboque_id', reboqueId)
+          .in('status', ['ativo', 'reservado'])
+          .lte('data_retirada', dataDevolucao)
+          .gte('data_devolucao', dataRetirada);
+
+        if (cancelled) return;
+
+        if (error) {
+          console.error('Conflict check error:', error);
+          setConflict(false);
+          setConflictDetails([]);
           setCheckingConflict(false);
+          return;
         }
-      });
+
+        const items = data || [];
+        if (items.length === 0) {
+          setConflict(false);
+          setConflictDetails([]);
+          setCheckingConflict(false);
+          return;
+        }
+
+        // Fetch client names separately
+        const clientIds = [...new Set(items.map(r => r.cliente_id).filter(Boolean))] as string[];
+        let clientMap: Record<string, string> = {};
+        if (clientIds.length > 0) {
+          const { data: clientData } = await supabase
+            .from('clientes')
+            .select('id, nome')
+            .in('id', clientIds);
+          if (!cancelled && clientData) {
+            clientMap = Object.fromEntries(clientData.map(c => [c.id, c.nome || 'Desconhecido']));
+          }
+        }
+
+        if (cancelled) return;
+
+        setConflict(true);
+        setConflictDetails(items.map(r => ({
+          cliente_nome: (r.cliente_id && clientMap[r.cliente_id]) || 'Desconhecido',
+          data_retirada: r.data_retirada || '',
+          data_devolucao: r.data_devolucao || '',
+        })));
+      } catch (err) {
+        console.error('Conflict check failed:', err);
+        if (!cancelled) {
+          setConflict(false);
+          setConflictDetails([]);
+        }
+      } finally {
+        if (!cancelled) setCheckingConflict(false);
+      }
+    };
+
+    checkConflicts();
     return () => { cancelled = true; };
   }, [reboqueId, dataRetirada, dataDevolucao]);
 
