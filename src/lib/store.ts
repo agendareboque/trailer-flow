@@ -1,6 +1,6 @@
 // Reactive data store for TrailerRent
-import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels } from './mock-data';
-import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel } from './mock-data';
+import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees } from './mock-data';
+import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee } from './mock-data';
 
 // Deep clone initial data so mutations don't affect imports
 let trailers: TrailerUnit[] = JSON.parse(JSON.stringify(mockTrailers));
@@ -8,6 +8,7 @@ let clients: Client[] = JSON.parse(JSON.stringify(mockClients));
 let rentals: Rental[] = JSON.parse(JSON.stringify(mockRentals));
 let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance));
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
+let employees: Employee[] = JSON.parse(JSON.stringify(mockEmployees));
 
 // Employee permissions (configurable by admin)
 export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
