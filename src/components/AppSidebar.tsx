@@ -121,7 +121,33 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-      </SidebarContent>
+
+        {isSuperAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-muted text-xs uppercase tracking-wider">
+              Super Admin
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {superAdminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border">
         {!collapsed && user && (
