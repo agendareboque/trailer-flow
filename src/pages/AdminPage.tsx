@@ -139,7 +139,7 @@ export default function AdminPage() {
   const empresasSuspensas = empresas.filter(e => e.status === 'suspenso').length;
 
   return (
-    <AppLayout title="Painel Administrativo" subtitle="Gestão global da plataforma SaaS">
+    <AppLayout>
       <div className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
