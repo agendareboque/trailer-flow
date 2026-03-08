@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import LoginPage from "./pages/LoginPage";
+import TrialExpiredPage from "./pages/TrialExpiredPage";
 import DashboardPage from "./pages/DashboardPage";
 import TrailersPage from "./pages/TrailersPage";
 import ClientsPage from "./pages/ClientsPage";
@@ -21,9 +22,10 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }: { children: React.ReactNode; adminOnly?: boolean; superAdminOnly?: boolean }) {
-  const { user, isAdmin, isSuperAdmin, loading } = useAuth();
+  const { user, isAdmin, isSuperAdmin, isSuspended, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/" replace />;
+  if (isSuspended) return <TrialExpiredPage />;
   if (superAdminOnly && !isSuperAdmin) return <Navigate to="/dashboard" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
