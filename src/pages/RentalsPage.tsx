@@ -82,9 +82,22 @@ export default function RentalsPage() {
     return () => window.removeEventListener('rentals-updated', handler);
   }, []);
 
-  const filtered = rentals.filter(r =>
-    filterStatus === 'all' || r.status === filterStatus
-  );
+  const isOverdue = (rental: Aluguel) => {
+    if (!rental.data_devolucao) return false;
+    if (rental.status === 'finalizado' || rental.status === 'cancelado') return false;
+    return isAfter(startOfDay(new Date()), new Date(rental.data_devolucao));
+  };
+
+  const getDisplayStatus = (rental: Aluguel) => {
+    if (isOverdue(rental)) return 'atrasado';
+    return rental.status || 'reservado';
+  };
+
+  const filtered = rentals.filter(r => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'atrasado') return isOverdue(r);
+    return r.status === filterStatus;
+  });
 
   const handleCancel = async (id: string) => {
     const rental = rentals.find(r => r.id === id);
