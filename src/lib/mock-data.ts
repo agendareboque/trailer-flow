@@ -1,4 +1,4 @@
-// Mock data for TrailerRent
+// Mock data for Agendareboque
 
 export interface User {
   id: string;
