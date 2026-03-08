@@ -188,15 +188,44 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           {/* Cliente */}
           <div>
             <Label>Cliente *</Label>
-            <Select value={clienteId} onValueChange={setClienteId}>
+            <Select value={clienteId} onValueChange={(val) => {
+              if (val === '__new__') {
+                setShowNewClientForm(true);
+              } else {
+                setClienteId(val);
+              }
+            }}>
               <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="__new__">
+                  <span className="flex items-center gap-1 text-primary font-medium">
+                    <UserPlus className="h-3.5 w-3.5" /> Cadastrar novo cliente
+                  </span>
+                </SelectItem>
                 {clients.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.nome || 'Sem nome'}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Inline new client form */}
+          <AnimatePresence>
+            {showNewClientForm && empresaId && (
+              <InlineNewClientForm
+                empresaId={empresaId}
+                onCancel={() => setShowNewClientForm(false)}
+                onCreated={(newId) => {
+                  setShowNewClientForm(false);
+                  // Refresh clients list and select new one
+                  supabase.from('clientes').select('id, nome').eq('empresa_id', empresaId).then(({ data }) => {
+                    setClients(data || []);
+                    setClienteId(newId);
+                  });
+                }}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Reboque */}
           <div>
