@@ -17,13 +17,18 @@ export interface TrailerModel {
 export interface TrailerUnit {
   id: string;
   modelId: string;
+  name: string;
   plate: string;
   color: string;
   status: 'available' | 'rented' | 'maintenance';
   imageUrl?: string;
+  documentUrl?: string;
+  notes?: string;
+  dailyRate: number;
   totalKm: number;
   lastMaintenanceKm: number;
   nextMaintenanceKm: number;
+  maintenanceIntervalKm: number;
 }
 
 export interface Client {
@@ -84,14 +89,14 @@ export const mockModels: TrailerModel[] = [
 const trailerColors = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#be185d', '#4f46e5'];
 
 export const mockTrailers: TrailerUnit[] = [
-  { id: 't1', modelId: 'm1', plate: 'ABC-1234', color: trailerColors[0], status: 'available', totalKm: 12500, lastMaintenanceKm: 10000, nextMaintenanceKm: 15000 },
-  { id: 't2', modelId: 'm1', plate: 'DEF-5678', color: trailerColors[1], status: 'rented', totalKm: 8200, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000 },
-  { id: 't3', modelId: 'm2', plate: 'GHI-9012', color: trailerColors[2], status: 'available', totalKm: 22000, lastMaintenanceKm: 20000, nextMaintenanceKm: 25000 },
-  { id: 't4', modelId: 'm2', plate: 'JKL-3456', color: trailerColors[3], status: 'maintenance', totalKm: 15800, lastMaintenanceKm: 15000, nextMaintenanceKm: 20000 },
-  { id: 't5', modelId: 'm3', plate: 'MNO-7890', color: trailerColors[4], status: 'rented', totalKm: 31000, lastMaintenanceKm: 30000, nextMaintenanceKm: 35000 },
-  { id: 't6', modelId: 'm3', plate: 'PQR-1234', color: trailerColors[5], status: 'available', totalKm: 5200, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000 },
-  { id: 't7', modelId: 'm4', plate: 'STU-5678', color: trailerColors[6], status: 'available', totalKm: 18700, lastMaintenanceKm: 15000, nextMaintenanceKm: 20000 },
-  { id: 't8', modelId: 'm4', plate: 'VWX-9012', color: trailerColors[7], status: 'rented', totalKm: 9400, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000 },
+  { id: 't1', modelId: 'm1', name: 'Carretinha Leve #1', plate: 'ABC-1234', color: trailerColors[0], status: 'available', dailyRate: 80, totalKm: 12500, lastMaintenanceKm: 10000, nextMaintenanceKm: 15000, maintenanceIntervalKm: 5000, notes: 'Reboque em ótimo estado' },
+  { id: 't2', modelId: 'm1', name: 'Carretinha Leve #2', plate: 'DEF-5678', color: trailerColors[1], status: 'rented', dailyRate: 80, totalKm: 8200, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000, maintenanceIntervalKm: 5000 },
+  { id: 't3', modelId: 'm2', name: 'Carretinha Média #1', plate: 'GHI-9012', color: trailerColors[2], status: 'available', dailyRate: 120, totalKm: 22000, lastMaintenanceKm: 20000, nextMaintenanceKm: 25000, maintenanceIntervalKm: 5000 },
+  { id: 't4', modelId: 'm2', name: 'Carretinha Média #2', plate: 'JKL-3456', color: trailerColors[3], status: 'maintenance', dailyRate: 120, totalKm: 15800, lastMaintenanceKm: 15000, nextMaintenanceKm: 20000, maintenanceIntervalKm: 5000 },
+  { id: 't5', modelId: 'm3', name: 'Reboque Pesado #1', plate: 'MNO-7890', color: trailerColors[4], status: 'rented', dailyRate: 200, totalKm: 31000, lastMaintenanceKm: 30000, nextMaintenanceKm: 35000, maintenanceIntervalKm: 5000 },
+  { id: 't6', modelId: 'm3', name: 'Reboque Pesado #2', plate: 'PQR-1234', color: trailerColors[5], status: 'available', dailyRate: 200, totalKm: 5200, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000, maintenanceIntervalKm: 5000 },
+  { id: 't7', modelId: 'm4', name: 'Reboque Fechado #1', plate: 'STU-5678', color: trailerColors[6], status: 'available', dailyRate: 250, totalKm: 18700, lastMaintenanceKm: 15000, nextMaintenanceKm: 20000, maintenanceIntervalKm: 5000 },
+  { id: 't8', modelId: 'm4', name: 'Reboque Fechado #2', plate: 'VWX-9012', color: trailerColors[7], status: 'rented', dailyRate: 250, totalKm: 9400, lastMaintenanceKm: 5000, nextMaintenanceKm: 10000, maintenanceIntervalKm: 5000 },
 ];
 
 export const mockClients: Client[] = [
