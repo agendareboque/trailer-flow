@@ -66,20 +66,27 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   useEffect(() => {
     if (!reboqueId || !dataRetirada || !dataDevolucao) {
       setConflict(false);
+      setConflictDetails([]);
       return;
     }
     let cancelled = false;
     setCheckingConflict(true);
     supabase
       .from('alugueis')
-      .select('id')
+      .select('id, data_retirada, data_devolucao, clientes(nome)')
       .eq('reboque_id', reboqueId)
       .in('status', ['ativo', 'reservado'])
       .lt('data_retirada', dataDevolucao)
       .gt('data_devolucao', dataRetirada)
       .then(({ data }) => {
         if (!cancelled) {
-          setConflict((data || []).length > 0);
+          const items = (data || []) as any[];
+          setConflict(items.length > 0);
+          setConflictDetails(items.map((r: any) => ({
+            cliente_nome: r.clientes?.nome || 'Desconhecido',
+            data_retirada: r.data_retirada,
+            data_devolucao: r.data_devolucao,
+          })));
           setCheckingConflict(false);
         }
       });
