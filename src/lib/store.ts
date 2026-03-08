@@ -9,6 +9,20 @@ let rentals: Rental[] = JSON.parse(JSON.stringify(mockRentals));
 let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance));
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
 
+// Employee permissions (configurable by admin)
+export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial';
+export const ALL_PAGES: { id: PermissionPage; label: string }[] = [
+  { id: 'trailers', label: 'Reboques' },
+  { id: 'clients', label: 'Clientes' },
+  { id: 'rentals', label: 'Aluguéis' },
+  { id: 'calendar', label: 'Calendário' },
+  { id: 'maintenance', label: 'Manutenção' },
+  { id: 'financial', label: 'Financeiro' },
+];
+
+// Default: employee can see everything except financial
+let employeePermissions: Set<PermissionPage> = new Set(['trailers', 'clients', 'rentals', 'calendar', 'maintenance']);
+
 type Listener = () => void;
 const listeners = new Set<Listener>();
 
@@ -28,23 +42,62 @@ export const store = {
   getRentals: () => rentals,
   getMaintenance: () => maintenance,
   getModels: () => models,
+  getEmployeePermissions: () => employeePermissions,
 
   getTrailerById: (id: string) => trailers.find(t => t.id === id),
   getClientById: (id: string) => clients.find(c => c.id === id),
   getModelById: (id: string) => models.find(m => m.id === id),
 
-  // Add rental + update trailer status + accumulate km
+  // Check if a trailer has a date conflict with existing rentals
+  hasDateConflict(trailerId: string, startDate: string, endDate: string, excludeRentalId?: string): boolean {
+    const newStart = new Date(startDate).getTime();
+    const newEnd = new Date(endDate).getTime();
+    return rentals.some(r => {
+      if (r.trailerId !== trailerId) return false;
+      if (r.status === 'cancelled' || r.status === 'completed') return false;
+      if (excludeRentalId && r.id === excludeRentalId) return false;
+      const existingStart = new Date(r.startDate).getTime();
+      const existingEnd = new Date(r.endDate).getTime();
+      // Overlap check
+      return newStart <= existingEnd && newEnd >= existingStart;
+    });
+  },
+
+  // Get booked periods for a trailer (for UI display)
+  getTrailerBookings(trailerId: string) {
+    return rentals.filter(r =>
+      r.trailerId === trailerId &&
+      (r.status === 'active' || r.status === 'scheduled')
+    ).map(r => ({
+      id: r.id,
+      start: r.startDate,
+      end: r.endDate,
+      clientName: clients.find(c => c.id === r.clientId)?.name || 'Desconhecido',
+      status: r.status,
+    }));
+  },
+
+  // Add rental — now allows any trailer (not just available), validates conflicts
   addRental(data: Omit<Rental, 'id' | 'createdAt'>) {
+    // Check for date conflict
+    if (this.hasDateConflict(data.trailerId, data.startDate, data.endDate)) {
+      return null; // conflict
+    }
+
     const rental: Rental = {
       ...data,
       id: 'r' + Date.now(),
       createdAt: new Date().toISOString().split('T')[0],
     };
     rentals = [rental, ...rentals];
-    // Mark trailer as rented
-    trailers = trailers.map(t =>
-      t.id === data.trailerId ? { ...t, status: 'rented' as const } : t
-    );
+
+    // Only mark as rented if rental starts today or earlier
+    const today = new Date().toISOString().split('T')[0];
+    if (data.startDate <= today) {
+      trailers = trailers.map(t =>
+        t.id === data.trailerId ? { ...t, status: 'rented' as const } : t
+      );
+    }
     notify();
     return rental;
   },
@@ -56,10 +109,13 @@ export const store = {
     rentals = rentals.map(r =>
       r.id === rentalId ? { ...r, status: 'completed' as const } : r
     );
-    // Add km to trailer and free it
+    // Add km to trailer and check if it has another active rental
+    const hasOtherActive = rentals.some(r =>
+      r.id !== rentalId && r.trailerId === rental.trailerId && r.status === 'active'
+    );
     trailers = trailers.map(t =>
       t.id === rental.trailerId
-        ? { ...t, status: 'available' as const, totalKm: t.totalKm + km }
+        ? { ...t, status: hasOtherActive ? 'rented' as const : 'available' as const, totalKm: t.totalKm + km }
         : t
     );
     notify();
@@ -71,9 +127,14 @@ export const store = {
     rentals = rentals.map(r =>
       r.id === rentalId ? { ...r, status: 'cancelled' as const } : r
     );
-    trailers = trailers.map(t =>
-      t.id === rental.trailerId ? { ...t, status: 'available' as const } : t
+    const hasOtherActive = rentals.some(r =>
+      r.id !== rentalId && r.trailerId === rental.trailerId && r.status === 'active'
     );
+    if (!hasOtherActive) {
+      trailers = trailers.map(t =>
+        t.id === rental.trailerId ? { ...t, status: 'available' as const } : t
+      );
+    }
     notify();
   },
 
@@ -109,7 +170,6 @@ export const store = {
       id: 'mt' + Date.now(),
     };
     maintenance = [record, ...maintenance];
-    // Update trailer km tracking
     trailers = trailers.map(t =>
       t.id === data.trailerId
         ? {
@@ -124,12 +184,22 @@ export const store = {
     return record;
   },
 
+  // Permissions management
+  setEmployeePermissions(pages: PermissionPage[]) {
+    employeePermissions = new Set(pages);
+    notify();
+  },
+
+  hasPermission(page: PermissionPage, role: 'admin' | 'employee'): boolean {
+    if (role === 'admin') return true;
+    return employeePermissions.has(page);
+  },
+
   // Notifications
   getNotifications() {
     const today = new Date();
     const notifications: { id: string; type: 'warning' | 'info' | 'danger'; title: string; message: string; date: string }[] = [];
 
-    // Rentals ending soon (within 2 days) or overdue
     rentals.filter(r => r.status === 'active').forEach(r => {
       const end = new Date(r.endDate);
       const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -138,24 +208,18 @@ export const store = {
 
       if (diffDays < 0) {
         notifications.push({
-          id: 'n-overdue-' + r.id,
-          type: 'danger',
-          title: 'Aluguel Vencido!',
-          message: `${client?.name} - ${trailer?.plate} venceu há ${Math.abs(diffDays)} dia(s)`,
-          date: r.endDate,
+          id: 'n-overdue-' + r.id, type: 'danger', title: 'Aluguel Vencido!',
+          message: `${client?.name} - ${trailer?.plate} venceu há ${Math.abs(diffDays)} dia(s)`, date: r.endDate,
         });
       } else if (diffDays <= 2) {
         notifications.push({
-          id: 'n-expiring-' + r.id,
-          type: 'warning',
-          title: 'Aluguel Vencendo',
-          message: `${client?.name} - ${trailer?.plate} vence em ${diffDays} dia(s)`,
-          date: r.endDate,
+          id: 'n-expiring-' + r.id, type: 'warning', title: 'Aluguel Vencendo',
+          message: `${client?.name} - ${trailer?.plate} vence em ${diffDays} dia(s)`, date: r.endDate,
         });
       }
     });
 
-    // Upcoming rentals starting soon (next client arriving)
+    // Upcoming rentals (scheduled for next 2 days)
     rentals.filter(r => r.status === 'active').forEach(r => {
       const start = new Date(r.startDate);
       const diffDays = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -163,23 +227,17 @@ export const store = {
 
       if (diffDays >= 0 && diffDays <= 1) {
         notifications.push({
-          id: 'n-arriving-' + r.id,
-          type: 'info',
-          title: 'Cliente Chegando',
-          message: `${client?.name} ${diffDays === 0 ? 'chega hoje' : 'chega amanhã'}`,
-          date: r.startDate,
+          id: 'n-arriving-' + r.id, type: 'info', title: 'Cliente Chegando',
+          message: `${client?.name} ${diffDays === 0 ? 'chega hoje' : 'chega amanhã'}`, date: r.startDate,
         });
       }
     });
 
-    // Maintenance alerts
     trailers.forEach(t => {
       const progress = ((t.totalKm - t.lastMaintenanceKm) / (t.nextMaintenanceKm - t.lastMaintenanceKm)) * 100;
       if (progress >= 80) {
         notifications.push({
-          id: 'n-maint-' + t.id,
-          type: progress >= 95 ? 'danger' : 'warning',
-          title: 'Manutenção Próxima',
+          id: 'n-maint-' + t.id, type: progress >= 95 ? 'danger' : 'warning', title: 'Manutenção Próxima',
           message: `${t.plate} está em ${Math.round(progress)}% do limite (${t.totalKm.toLocaleString()}/${t.nextMaintenanceKm.toLocaleString()} km)`,
           date: new Date().toISOString(),
         });

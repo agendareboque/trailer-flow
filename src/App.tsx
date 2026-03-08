@@ -12,6 +12,7 @@ import RentalsPage from "./pages/RentalsPage";
 import CalendarPage from "./pages/CalendarPage";
 import MaintenancePage from "./pages/MaintenancePage";
 import FinancialPage from "./pages/FinancialPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,7 +45,8 @@ const App = () => (
             <Route path="/rentals" element={<ProtectedRoute><RentalsPage /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
             <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
-            <Route path="/financial" element={<ProtectedRoute adminOnly><FinancialPage /></ProtectedRoute>} />
+            <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute adminOnly><SettingsPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
