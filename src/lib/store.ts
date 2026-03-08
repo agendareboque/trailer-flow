@@ -10,7 +10,7 @@ let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
 
 // Employee permissions (configurable by admin)
-export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial';
+export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
 export const ALL_PAGES: { id: PermissionPage; label: string }[] = [
   { id: 'trailers', label: 'Reboques' },
   { id: 'clients', label: 'Clientes' },
@@ -18,6 +18,7 @@ export const ALL_PAGES: { id: PermissionPage; label: string }[] = [
   { id: 'calendar', label: 'Calendário' },
   { id: 'maintenance', label: 'Manutenção' },
   { id: 'financial', label: 'Financeiro' },
+  { id: 'reports', label: 'Relatórios' },
 ];
 
 // Default: employee can see everything except financial

@@ -8,6 +8,7 @@ import {
   Wrench,
   LogOut,
   Settings,
+  FileBarChart,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -35,6 +36,7 @@ const mainItems: { title: string; url: string; icon: any; permission?: Permissio
   { title: 'Calendário', url: '/calendar', icon: CalendarDays, permission: 'calendar' },
   { title: 'Manutenção', url: '/maintenance', icon: Wrench, permission: 'maintenance' },
   { title: 'Financeiro', url: '/financial', icon: DollarSign, permission: 'financial' },
+  { title: 'Relatórios', url: '/reports', icon: FileBarChart, permission: 'reports' },
 ];
 
 const adminItems = [
