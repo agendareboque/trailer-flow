@@ -60,7 +60,6 @@ export default function RentalsPage() {
           const trailer = trailers.find(t => t.id === rental.trailerId);
           const paymentLabel = getPaymentLabel(rental.paymentMethod);
           const hasDiscount = rental.discountType && rental.discountAmount;
-          const hasDiscount = rental.discountType && rental.discountAmount;
 
           return (
             <motion.div

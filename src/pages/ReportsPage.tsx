@@ -95,7 +95,7 @@ export default function ReportsPage() {
       totalPeriodDays,
       neverRented,
     };
-  }, [dateRange, trailers, rentals, models]);
+  }, [dateRange, trailers, rentals]);
 
   const getOccupancyColor = (rate: number) => {
     if (rate >= 70) return 'text-success';
