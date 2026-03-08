@@ -128,6 +128,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
                 ))}
               </SelectContent>
             </Select>
+            <InlineNewClientForm onClientCreated={(id) => setClientId(id)} />
           </div>
           <div>
             <Label>Reboque</Label>

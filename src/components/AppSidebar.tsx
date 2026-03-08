@@ -41,6 +41,7 @@ const mainItems: { title: string; url: string; icon: any; permission?: Permissio
 ];
 
 const adminItems = [
+  { title: 'Compra & Venda', url: '/sales', icon: ShoppingCart },
   { title: 'Configurações', url: '/settings', icon: Settings },
 ];
 
