@@ -9,6 +9,7 @@ let rentals: Rental[] = JSON.parse(JSON.stringify(mockRentals));
 let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance));
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
 let employees: Employee[] = JSON.parse(JSON.stringify(mockEmployees));
+let sales: Sale[] = JSON.parse(JSON.stringify(mockSales));
 
 // Employee permissions (configurable by admin)
 export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
