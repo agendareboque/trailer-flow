@@ -1,18 +1,33 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
-import { mockRentals, getClientById, getTrailerById, getModelById } from '@/lib/mock-data';
+import { useStore } from '@/hooks/use-store';
+import { store } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export default function RentalsPage() {
+  const { rentals, clients, trailers, models } = useStore();
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const filtered = mockRentals.filter(r =>
+  const filtered = rentals.filter(r =>
     filterStatus === 'all' || r.status === filterStatus
   );
+
+  const handleComplete = (rentalId: string) => {
+    store.completeRental(rentalId);
+    toast({ title: 'Aluguel concluído!', description: 'Km adicionados ao reboque automaticamente.' });
+  };
+
+  const handleCancel = (rentalId: string) => {
+    store.cancelRental(rentalId);
+    toast({ title: 'Aluguel cancelado' });
+  };
 
   return (
     <AppLayout>
@@ -37,9 +52,9 @@ export default function RentalsPage() {
 
       <div className="space-y-3">
         {filtered.map((rental, i) => {
-          const client = getClientById(rental.clientId);
-          const trailer = getTrailerById(rental.trailerId);
-          const model = trailer ? getModelById(trailer.modelId) : null;
+          const client = clients.find(c => c.id === rental.clientId);
+          const trailer = trailers.find(t => t.id === rental.trailerId);
+          const model = trailer ? models.find(m => m.id === trailer.modelId) : null;
 
           return (
             <motion.div
@@ -60,7 +75,7 @@ export default function RentalsPage() {
                   <div>
                     <h3 className="font-semibold font-heading">{client?.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {model?.name} • {trailer?.plate}
+                      {model?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
                     </p>
                   </div>
                 </div>
@@ -75,6 +90,16 @@ export default function RentalsPage() {
                     </p>
                   </div>
                   <StatusBadge status={rental.status} />
+                  {rental.status === 'active' && (
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Concluir">
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleCancel(rental.id)} title="Cancelar">
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
