@@ -180,11 +180,11 @@ export const store = {
     notify();
   },
 
-  addClient(data: Omit<Client, 'id' | 'score' | 'totalRentals' | 'lateReturns'>) {
+  addClient(data: Omit<Client, 'id' | 'ratings' | 'totalRentals' | 'lateReturns'>) {
     const client: Client = {
       ...data,
       id: 'c' + Date.now(),
-      score: 100,
+      ratings: [],
       totalRentals: 0,
       lateReturns: 0,
     };

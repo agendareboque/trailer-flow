@@ -205,10 +205,10 @@ export function getTrailerById(id: string) {
   return mockTrailers.find(t => t.id === id);
 }
 
-export function getScoreColor(score: number): string {
-  if (score >= 80) return 'text-success';
-  if (score >= 50) return 'text-warning';
-  return 'text-destructive';
+export function getStarColor(avg: number): string {
+  if (avg >= 4) return 'text-warning fill-warning';
+  if (avg >= 2.5) return 'text-warning fill-warning/50';
+  return 'text-destructive fill-destructive/50';
 }
 
 export function getStatusColor(status: string): string {
