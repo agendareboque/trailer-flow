@@ -39,7 +39,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
       supabase.from('reboques').select('id, nome, placa, valor_diaria').eq('empresa_id', empresaId).then(({ data }) => setTrailers(data || []));
       // Reset form
       setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao('');
-      setDescontoTipo('none'); setDescontoValor(''); setConflict(false);
+      setDescontoTipo('none'); setDescontoValor(''); setConflict(false); setConflictDetails([]);
     }
   }, [open, empresaId]);
 
