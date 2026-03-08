@@ -176,7 +176,7 @@ export default function RentalsPage() {
                       <AlertTriangle className="h-3.5 w-3.5" /> Atrasado
                     </span>
                   )}
-                  {(rental.status === 'reservado' || rental.status === 'em_uso') && (
+                  {(rental.status === 'reservado' || rental.status === 'em_uso' || isOverdue(rental)) && (
                     <div className="flex gap-1">
                       {rental.status === 'em_uso' && (
                         <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
