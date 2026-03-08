@@ -326,4 +326,21 @@ export const store = {
       return priority[a.type] - priority[b.type];
     });
   },
+
+  // Sales management
+  addSale(data: Omit<Sale, 'id' | 'createdAt'>) {
+    const sale: Sale = {
+      ...data,
+      id: 's' + Date.now(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    sales = [sale, ...sales];
+    notify();
+    return sale;
+  },
+
+  removeSale(saleId: string) {
+    sales = sales.filter(s => s.id !== saleId);
+    notify();
+  },
 };
