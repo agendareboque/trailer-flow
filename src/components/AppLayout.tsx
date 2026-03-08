@@ -3,9 +3,13 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/lib/auth-context';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
+import { useTheme } from '@/hooks/use-theme';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <SidebarProvider>
@@ -17,6 +21,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger />
             </div>
             <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground">
+                {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              </Button>
               <NotificationCenter />
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
