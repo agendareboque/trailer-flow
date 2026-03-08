@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Pencil } from 'lucide-react';
 import { isAfter, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
+import { EditRentalDialog } from '@/components/dialogs/EditRentalDialog';
 
 interface Aluguel {
   id: string;
@@ -31,6 +32,7 @@ export default function RentalsPage() {
   const [rentals, setRentals] = useState<Aluguel[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [editingRental, setEditingRental] = useState<Aluguel | null>(null);
 
   const fetchRentals = async () => {
     if (!empresaId) return;
@@ -176,8 +178,11 @@ export default function RentalsPage() {
                       <AlertTriangle className="h-3.5 w-3.5" /> Atrasado
                     </span>
                   )}
-                  {(rental.status === 'reservado' || rental.status === 'em_uso' || isOverdue(rental)) && (
+                  {rental.status !== 'finalizado' && rental.status !== 'cancelado' && (
                     <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setEditingRental(rental)} title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       {(rental.status === 'em_uso' || isOverdue(rental)) && (
                         <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
                           <CheckCircle className="h-4 w-4" />
@@ -197,6 +202,14 @@ export default function RentalsPage() {
 
       {!loading && filtered.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">Nenhum aluguel encontrado.</div>
+      )}
+
+      {editingRental && (
+        <EditRentalDialog
+          open={!!editingRental}
+          onOpenChange={(o) => { if (!o) setEditingRental(null); }}
+          rental={editingRental}
+        />
       )}
     </AppLayout>
   );
