@@ -203,6 +203,14 @@ export default function RentalsPage() {
       {!loading && filtered.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">Nenhum aluguel encontrado.</div>
       )}
+
+      {editingRental && (
+        <EditRentalDialog
+          open={!!editingRental}
+          onOpenChange={(o) => { if (!o) setEditingRental(null); }}
+          rental={editingRental}
+        />
+      )}
     </AppLayout>
   );
 }
