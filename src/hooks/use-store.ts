@@ -1,5 +1,6 @@
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 import { store } from '@/lib/store';
+import type { PermissionPage } from '@/lib/store';
 
 interface StoreSnapshot {
   trailers: ReturnType<typeof store.getTrailers>;
@@ -8,10 +9,11 @@ interface StoreSnapshot {
   maintenance: ReturnType<typeof store.getMaintenance>;
   models: ReturnType<typeof store.getModels>;
   notifications: ReturnType<typeof store.getNotifications>;
+  employeePermissions: Set<PermissionPage>;
 }
 
 let cachedSnapshot: StoreSnapshot | null = null;
-let cachedArrays: [any, any, any, any, any] | null = null;
+let cachedArrays: [any, any, any, any, any, any] | null = null;
 
 function getSnapshot(): StoreSnapshot {
   const t = store.getTrailers();
@@ -19,6 +21,7 @@ function getSnapshot(): StoreSnapshot {
   const r = store.getRentals();
   const m = store.getMaintenance();
   const mo = store.getModels();
+  const ep = store.getEmployeePermissions();
 
   if (
     cachedArrays &&
@@ -27,12 +30,13 @@ function getSnapshot(): StoreSnapshot {
     cachedArrays[2] === r &&
     cachedArrays[3] === m &&
     cachedArrays[4] === mo &&
+    cachedArrays[5] === ep &&
     cachedSnapshot
   ) {
     return cachedSnapshot;
   }
 
-  cachedArrays = [t, c, r, m, mo];
+  cachedArrays = [t, c, r, m, mo, ep];
   cachedSnapshot = {
     trailers: t,
     clients: c,
@@ -40,6 +44,7 @@ function getSnapshot(): StoreSnapshot {
     maintenance: m,
     models: mo,
     notifications: store.getNotifications(),
+    employeePermissions: ep,
   };
   return cachedSnapshot;
 }
