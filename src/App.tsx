@@ -28,7 +28,8 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Carregando...</div>;
   if (user) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
