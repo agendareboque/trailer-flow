@@ -1,8 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/lib/auth-context';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -17,12 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger />
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive rounded-full text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              <NotificationCenter />
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
                   {user?.name.charAt(0)}
@@ -34,6 +29,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+        <FloatingActionButton />
       </div>
     </SidebarProvider>
   );

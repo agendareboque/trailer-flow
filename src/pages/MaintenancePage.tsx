@@ -1,16 +1,18 @@
 import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
-import { mockTrailers, mockMaintenance, getModelById } from '@/lib/mock-data';
+import { useStore } from '@/hooks/use-store';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { Wrench } from 'lucide-react';
 
 export default function MaintenancePage() {
-  const trailersWithMaint = mockTrailers.map(t => ({
+  const { trailers, models, maintenance } = useStore();
+
+  const trailersWithMaint = trailers.map(t => ({
     ...t,
-    model: getModelById(t.modelId),
-    records: mockMaintenance.filter(m => m.trailerId === t.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    model: models.find(m => m.id === t.modelId),
+    records: maintenance.filter(m => m.trailerId === t.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     kmProgress: ((t.totalKm - t.lastMaintenanceKm) / (t.nextMaintenanceKm - t.lastMaintenanceKm)) * 100,
   }));
 
