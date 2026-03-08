@@ -1,6 +1,6 @@
 // Reactive data store for TrailerRent
-import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels } from './mock-data';
-import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel } from './mock-data';
+import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees } from './mock-data';
+import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee } from './mock-data';
 
 // Deep clone initial data so mutations don't affect imports
 let trailers: TrailerUnit[] = JSON.parse(JSON.stringify(mockTrailers));
@@ -8,6 +8,7 @@ let clients: Client[] = JSON.parse(JSON.stringify(mockClients));
 let rentals: Rental[] = JSON.parse(JSON.stringify(mockRentals));
 let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance));
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
+let employees: Employee[] = JSON.parse(JSON.stringify(mockEmployees));
 
 // Employee permissions (configurable by admin)
 export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
@@ -44,6 +45,7 @@ export const store = {
   getMaintenance: () => maintenance,
   getModels: () => models,
   getEmployeePermissions: () => employeePermissions,
+  getEmployees: () => employees,
 
   getTrailerById: (id: string) => trailers.find(t => t.id === id),
   getClientById: (id: string) => clients.find(c => c.id === id),
@@ -231,6 +233,41 @@ export const store = {
   hasPermission(page: PermissionPage, role: 'admin' | 'employee'): boolean {
     if (role === 'admin') return true;
     return employeePermissions.has(page);
+  },
+
+  // Employee management
+  addEmployee(data: Omit<Employee, 'id' | 'createdAt' | 'lastActiveAt' | 'totalRentalsCreated' | 'totalClientsCreated' | 'totalMaintenanceCreated'>) {
+    const employee: Employee = {
+      ...data,
+      id: 'emp' + Date.now(),
+      createdAt: new Date().toISOString().split('T')[0],
+      lastActiveAt: new Date().toISOString(),
+      totalRentalsCreated: 0,
+      totalClientsCreated: 0,
+      totalMaintenanceCreated: 0,
+    };
+    employees = [employee, ...employees];
+    notify();
+    return employee;
+  },
+
+  updateEmployee(employeeId: string, updates: Partial<Employee>) {
+    employees = employees.map(e =>
+      e.id === employeeId ? { ...e, ...updates } : e
+    );
+    notify();
+  },
+
+  toggleEmployeeStatus(employeeId: string) {
+    employees = employees.map(e =>
+      e.id === employeeId ? { ...e, status: e.status === 'active' ? 'inactive' as const : 'active' as const } : e
+    );
+    notify();
+  },
+
+  removeEmployee(employeeId: string) {
+    employees = employees.filter(e => e.id !== employeeId);
+    notify();
   },
 
   // Notifications
