@@ -1,4 +1,4 @@
-// Reactive data store for TrailerRent
+// Reactive data store for Agendareboque
 import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees, mockSales } from './mock-data';
 import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee, Sale, ClientRating } from './mock-data';
 

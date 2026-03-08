@@ -1,4 +1,4 @@
-// Mock data for TrailerRent
+// Mock data for Agendareboqueueueue
 
 export interface User {
   id: string;
@@ -119,17 +119,17 @@ export interface Sale {
 
 export const mockEmployees: Employee[] = [
   {
-    id: 'emp1', name: 'Maria Funcionária', email: 'maria@trailerrent.com', phone: '(11) 98888-0001',
+    id: 'emp1', name: 'Maria Funcionária', email: 'agendareboqueoqueoquent.com', phone: '(11) 98888-0001',
     document: '111.222.333-44', status: 'active', permissions: ['trailers', 'clients', 'rentals', 'calendar', 'maintenance'],
     lastActiveAt: '2026-03-08T14:30:00', createdAt: '2025-06-15', totalRentalsCreated: 47, totalClientsCreated: 12, totalMaintenanceCreated: 8,
   },
   {
-    id: 'emp2', name: 'João Atendente', email: 'joao.func@trailerrent.com', phone: '(11) 98888-0002',
+    id: 'emp2', name: 'João Atendente', email: 'joagendareboqueeboquerent.com', phone: '(11) 98888-0002',
     document: '555.666.777-88', status: 'active', permissions: ['trailers', 'rentals', 'calendar'],
     lastActiveAt: '2026-03-07T18:15:00', createdAt: '2025-09-01', totalRentalsCreated: 23, totalClientsCreated: 5, totalMaintenanceCreated: 2,
   },
   {
-    id: 'emp3', name: 'Ana Oliveira', email: 'ana.func@trailerrent.com', phone: '(11) 98888-0003',
+    id: 'emp3', name: 'Ana Oliveira', email: 'anaagendareboqueerrent.com', phone: '(11) 98888-0003',
     document: '999.000.111-22', status: 'inactive', permissions: ['trailers', 'clients'],
     lastActiveAt: '2026-02-20T10:00:00', createdAt: '2025-11-10', totalRentalsCreated: 8, totalClientsCreated: 3, totalMaintenanceCreated: 0,
     notes: 'Afastada temporariamente',
@@ -137,8 +137,8 @@ export const mockEmployees: Employee[] = [
 ];
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Carlos Admin', email: 'admin@trailerrent.com', role: 'admin' },
-  { id: '2', name: 'Maria Funcionária', email: 'maria@trailerrent.com', role: 'employee' },
+  { id: '1', name: 'Carlos Admin', email: 'admin@agendareboque.com', role: 'admin' },
+  { id: '2', name: 'Maria Funcionária', email: 'maria@agendareboque.com', role: 'employee' },
 ];
 
 export const mockModels: TrailerModel[] = [
