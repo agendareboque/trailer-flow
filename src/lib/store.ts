@@ -1,6 +1,6 @@
 // Reactive data store for TrailerRent
 import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees, mockSales } from './mock-data';
-import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee, Sale } from './mock-data';
+import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee, Sale, ClientRating } from './mock-data';
 
 // Deep clone initial data so mutations don't affect imports
 let trailers: TrailerUnit[] = JSON.parse(JSON.stringify(mockTrailers));
@@ -144,7 +144,7 @@ export const store = {
     return true;
   },
 
-  completeRental(rentalId: string, actualKm?: number) {
+  completeRental(rentalId: string, actualKm?: number, rating?: { rating: number; comment?: string }) {
     const rental = rentals.find(r => r.id === rentalId);
     if (!rental) return;
     const km = actualKm ?? rental.estimatedKm;
@@ -160,6 +160,15 @@ export const store = {
         ? { ...t, status: hasOtherActive ? 'rented' as const : 'available' as const, totalKm: t.totalKm + km }
         : t
     );
+    // Add rating to client if provided
+    if (rating) {
+      const clientRating: ClientRating = { rentalId, rating: rating.rating, comment: rating.comment };
+      clients = clients.map(c =>
+        c.id === rental.clientId
+          ? { ...c, ratings: [...c.ratings, clientRating] }
+          : c
+      );
+    }
     notify();
   },
 
