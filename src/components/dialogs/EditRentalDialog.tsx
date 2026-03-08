@@ -1,106 +1,180 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStore } from '@/hooks/use-store';
-import { store } from '@/lib/store';
-import { toast } from '@/hooks/use-toast';
-import { Rental, getPaymentLabel } from '@/lib/mock-data';
-import { differenceInDays, format, parseISO, eachDayOfInterval } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
+import { differenceInDays, format } from 'date-fns';
 import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
+
+interface RentalData {
+  id: string;
+  cliente_id: string | null;
+  reboque_id: string | null;
+  data_retirada: string | null;
+  data_devolucao: string | null;
+  valor: number | null;
+  status: string | null;
+}
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  rental: Rental;
+  rental: RentalData;
 }
 
-const paymentMethods = [
-  { value: 'pix', label: 'PIX' },
-  { value: 'credit_card', label: 'Cartão de Crédito' },
-  { value: 'debit_card', label: 'Cartão de Débito' },
-  { value: 'cash', label: 'Dinheiro' },
-  { value: 'boleto', label: 'Boleto' },
-];
+interface ClientOption { id: string; nome: string | null }
+interface TrailerOption { id: string; nome: string | null; placa: string | null; valor_diaria: number | null }
 
 export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
-  const { clients, trailers, rentals } = useStore();
-  const [clientId, setClientId] = useState(rental.clientId);
-  const [trailerId, setTrailerId] = useState(rental.trailerId);
-  const [startDate, setStartDate] = useState(rental.startDate);
-  const [endDate, setEndDate] = useState(rental.endDate);
-  const [estimatedKm, setEstimatedKm] = useState(String(rental.estimatedKm));
-  const [paymentMethod, setPaymentMethod] = useState(rental.paymentMethod || '');
-  const [discountType, setDiscountType] = useState<'none' | 'value' | 'percentage'>(rental.discountType || 'none');
-  const [discountAmount, setDiscountAmount] = useState(rental.discountAmount ? String(rental.discountAmount) : '');
+  const { empresaId } = useAuth();
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [trailers, setTrailers] = useState<TrailerOption[]>([]);
+  const [clienteId, setClienteId] = useState('');
+  const [reboqueId, setReboqueId] = useState('');
+  const [dataRetirada, setDataRetirada] = useState('');
+  const [dataDevolucao, setDataDevolucao] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+  const [descontoTipo, setDescontoTipo] = useState<'none' | 'value' | 'percentage'>('none');
+  const [descontoValor, setDescontoValor] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [conflict, setConflict] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState<{ cliente_nome: string; data_retirada: string; data_devolucao: string }[]>([]);
+  const [checkingConflict, setCheckingConflict] = useState(false);
 
-  // Reset form when rental changes
   useEffect(() => {
-    setClientId(rental.clientId);
-    setTrailerId(rental.trailerId);
-    setStartDate(rental.startDate);
-    setEndDate(rental.endDate);
-    setEstimatedKm(String(rental.estimatedKm));
-    setPaymentMethod(rental.paymentMethod || '');
-    setDiscountType(rental.discountType || 'none');
-    setDiscountAmount(rental.discountAmount ? String(rental.discountAmount) : '');
-  }, [rental]);
+    if (open && empresaId) {
+      supabase.from('clientes').select('id, nome').eq('empresa_id', empresaId).then(({ data }) => setClients(data || []));
+      supabase.from('reboques').select('id, nome, placa, valor_diaria').eq('empresa_id', empresaId).then(({ data }) => setTrailers(data || []));
 
-  const bookableTrailers = trailers.filter(t => t.status !== 'maintenance');
-  const selectedTrailer = trailers.find(t => t.id === trailerId);
+      // Pre-fill from rental
+      setClienteId(rental.cliente_id || '');
+      setReboqueId(rental.reboque_id || '');
+      setDataRetirada(rental.data_retirada ? rental.data_retirada.split('T')[0] : '');
+      setDataDevolucao(rental.data_devolucao ? rental.data_devolucao.split('T')[0] : '');
+      setObservacoes('');
+      setDescontoTipo('none');
+      setDescontoValor('');
+      setConflict(false);
+      setConflictDetails([]);
+    }
+  }, [open, empresaId, rental]);
 
-  const days = startDate && endDate ? Math.max(differenceInDays(new Date(endDate), new Date(startDate)), 1) : 0;
-  const basePrice = selectedTrailer ? days * selectedTrailer.dailyRate : 0;
+  const selectedTrailer = trailers.find(t => t.id === reboqueId);
+  const dailyRate = selectedTrailer?.valor_diaria || 0;
+
+  const dateError = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao) return '';
+    if (new Date(dataDevolucao) < new Date(dataRetirada)) {
+      return 'A data de devolução não pode ser anterior à data de retirada.';
+    }
+    return '';
+  }, [dataRetirada, dataDevolucao]);
+
+  const days = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao || dateError) return 0;
+    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  }, [dataRetirada, dataDevolucao, dateError]);
+
+  const basePrice = dailyRate * days;
 
   const discountValue = useMemo(() => {
-    if (discountType === 'none' || !discountAmount) return 0;
-    const amt = Number(discountAmount);
-    if (discountType === 'percentage') return basePrice * (amt / 100);
+    if (descontoTipo === 'none' || !descontoValor) return 0;
+    const amt = Number(descontoValor);
+    if (descontoTipo === 'percentage') return basePrice * (amt / 100);
     return amt;
-  }, [discountType, discountAmount, basePrice]);
+  }, [descontoTipo, descontoValor, basePrice]);
 
   const totalPrice = Math.max(basePrice - discountValue, 0);
 
-  const hasConflict = useMemo(() => {
-    if (!trailerId || !startDate || !endDate) return false;
-    return store.hasDateConflict(trailerId, startDate, endDate, rental.id);
-  }, [trailerId, startDate, endDate, rentals, rental.id]);
-
-  // Bookings for selected trailer (excluding current rental)
-  const bookings = useMemo(() => {
-    if (!trailerId) return [];
-    return store.getTrailerBookings(trailerId).filter(b => b.id !== rental.id);
-  }, [trailerId, rentals, rental.id]);
-
-  const handleSubmit = () => {
-    if (!clientId || !trailerId || !startDate || !endDate || !estimatedKm || !paymentMethod) {
-      toast({ title: 'Preencha todos os campos', variant: 'destructive' });
+  // Conflict check (exclude current rental)
+  useEffect(() => {
+    if (!reboqueId || !dataRetirada || !dataDevolucao || dateError) {
+      setConflict(false);
+      setConflictDetails([]);
       return;
     }
-    if (hasConflict) {
-      toast({ title: 'Conflito de datas!', variant: 'destructive' });
+    let cancelled = false;
+    setCheckingConflict(true);
+
+    const check = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('alugueis')
+          .select('id, data_retirada, data_devolucao, cliente_id')
+          .eq('reboque_id', reboqueId)
+          .in('status', ['reservado', 'em_uso'])
+          .neq('id', rental.id)
+          .lte('data_retirada', dataDevolucao)
+          .gte('data_devolucao', dataRetirada);
+
+        if (cancelled) return;
+        if (error) { setConflict(false); setConflictDetails([]); setCheckingConflict(false); return; }
+
+        const items = data || [];
+        if (items.length === 0) { setConflict(false); setConflictDetails([]); setCheckingConflict(false); return; }
+
+        const clientIds = [...new Set(items.map(r => r.cliente_id).filter(Boolean))] as string[];
+        let clientMap: Record<string, string> = {};
+        if (clientIds.length > 0) {
+          const { data: cd } = await supabase.from('clientes').select('id, nome').in('id', clientIds);
+          if (!cancelled && cd) clientMap = Object.fromEntries(cd.map(c => [c.id, c.nome || 'Desconhecido']));
+        }
+        if (cancelled) return;
+
+        setConflict(true);
+        setConflictDetails(items.map(r => ({
+          cliente_nome: (r.cliente_id && clientMap[r.cliente_id]) || 'Desconhecido',
+          data_retirada: r.data_retirada || '',
+          data_devolucao: r.data_devolucao || '',
+        })));
+      } catch { if (!cancelled) { setConflict(false); setConflictDetails([]); } }
+      finally { if (!cancelled) setCheckingConflict(false); }
+    };
+
+    check();
+    return () => { cancelled = true; };
+  }, [reboqueId, dataRetirada, dataDevolucao, dateError, rental.id]);
+
+  const handleSubmit = async () => {
+    if (!clienteId || !reboqueId || !dataRetirada || !dataDevolucao) {
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
-    const success = store.updateRental(rental.id, {
-      clientId,
-      trailerId,
-      startDate,
-      endDate,
-      estimatedKm: Number(estimatedKm),
-      basePrice,
-      discountType: discountType !== 'none' ? discountType : undefined,
-      discountAmount: discountType !== 'none' ? Number(discountAmount) : undefined,
-      totalPrice,
-      paymentMethod,
-    });
-    if (success) {
-      toast({ title: 'Aluguel atualizado!', description: `Total: R$ ${totalPrice.toFixed(2)}` });
-      onOpenChange(false);
-    } else {
-      toast({ title: 'Conflito de datas!', variant: 'destructive' });
+    if (dateError) { toast.error(dateError); return; }
+    if (conflict) { toast.error('Este reboque já está reservado para o período selecionado.'); return; }
+
+    setLoading(true);
+
+    const { error } = await supabase.from('alugueis').update({
+      cliente_id: clienteId,
+      reboque_id: reboqueId,
+      data_retirada: dataRetirada,
+      data_devolucao: dataDevolucao,
+      valor: totalPrice,
+    }).eq('id', rental.id);
+
+    if (error) {
+      toast.error('Erro ao atualizar aluguel');
+      console.error(error);
+      setLoading(false);
+      return;
     }
+
+    // If trailer changed, update old trailer to disponivel and new to alugado
+    if (rental.reboque_id && rental.reboque_id !== reboqueId) {
+      await supabase.from('reboques').update({ status: 'disponivel' }).eq('id', rental.reboque_id);
+      await supabase.from('reboques').update({ status: 'alugado' }).eq('id', reboqueId);
+    }
+
+    setLoading(false);
+    toast.success(`Aluguel atualizado! Total: R$ ${totalPrice.toFixed(2)}`);
+    onOpenChange(false);
+    window.dispatchEvent(new Event('rentals-updated'));
   };
 
   return (
@@ -111,120 +185,114 @@ export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Cliente</Label>
-            <Select value={clientId} onValueChange={setClientId}>
+            <Label>Cliente *</Label>
+            <Select value={clienteId} onValueChange={setClienteId}>
               <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
               <SelectContent>
                 {clients.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name} — {c.document}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.nome || 'Sem nome'}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
           <div>
-            <Label>Reboque</Label>
-            <Select value={trailerId} onValueChange={setTrailerId}>
+            <Label>Reboque *</Label>
+            <Select value={reboqueId} onValueChange={setReboqueId}>
               <SelectTrigger><SelectValue placeholder="Selecione o reboque" /></SelectTrigger>
               <SelectContent>
-                {bookableTrailers.map(t => (
+                {trailers.map(t => (
                   <SelectItem key={t.id} value={t.id}>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
-                      <span>{t.plate} — {t.name}</span>
-                      {t.status === 'rented' && t.id !== rental.trailerId && (
-                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">em uso</span>
-                      )}
-                    </div>
+                    {t.placa} — {t.nome || 'Sem nome'} (R$ {(t.valor_diaria || 0).toFixed(2)}/dia)
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {bookings.length > 0 && (
-            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-              <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider">Outras reservas deste reboque:</p>
-              {bookings.map(b => (
-                <div key={b.id} className="flex items-center gap-2 text-xs">
-                  <div className="w-full bg-destructive/15 rounded px-2 py-1 flex justify-between">
-                    <span className="font-medium text-destructive">{b.clientName}</span>
-                    <span className="text-muted-foreground">
-                      {format(parseISO(b.start), 'dd/MM/yy')} → {format(parseISO(b.end), 'dd/MM/yy')}
-                    </span>
-                  </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data Retirada *</Label>
+              <Input type="date" value={dataRetirada} onChange={e => setDataRetirada(e.target.value)} />
+            </div>
+            <div>
+              <Label>Data Devolução *</Label>
+              <Input type="date" value={dataDevolucao} onChange={e => setDataDevolucao(e.target.value)} />
+            </div>
+          </div>
+
+          {dateError && <p className="text-sm text-destructive font-medium">{dateError}</p>}
+
+          {conflict && conflictDetails.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-destructive text-sm font-semibold">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                <span>Este reboque já está reservado para o período selecionado.</span>
+              </div>
+              {conflictDetails.map((c, idx) => (
+                <div key={idx} className="text-sm text-muted-foreground pl-6">
+                  <span className="font-medium text-foreground">{c.cliente_nome}</span>
+                  {' — '}
+                  {c.data_retirada ? format(new Date(c.data_retirada), "dd/MM/yyyy") : '?'}
+                  {' até '}
+                  {c.data_devolucao ? format(new Date(c.data_devolucao), "dd/MM/yyyy") : '?'}
                 </div>
               ))}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Data Início</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-            </div>
-            <div>
-              <Label>Data Fim</Label>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-            </div>
-          </div>
-
-          {hasConflict && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive text-sm">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>Conflito de datas! Esse reboque já está reservado nesse período.</span>
+          {selectedTrailer && days > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-muted-foreground text-xs">Valor Diária</Label>
+                <p className="font-semibold">R$ {dailyRate.toFixed(2)}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">Dias</Label>
+                <p className="font-semibold">{days} dia(s)</p>
+              </div>
             </div>
           )}
 
           <div>
-            <Label>Km Estimados</Label>
-            <Input type="number" placeholder="Ex: 500" value={estimatedKm} onChange={e => setEstimatedKm(e.target.value)} />
-          </div>
-
-          <div>
-            <Label>Forma de Pagamento</Label>
-            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {paymentMethods.map(p => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <Label>Desconto</Label>
             <div className="flex gap-2 mt-1">
-              <Button type="button" size="sm" variant={discountType === 'none' ? 'default' : 'outline'}
-                onClick={() => { setDiscountType('none'); setDiscountAmount(''); }}>Sem desconto</Button>
-              <Button type="button" size="sm" variant={discountType === 'value' ? 'default' : 'outline'}
-                onClick={() => setDiscountType('value')}><DollarSign className="h-3 w-3 mr-1" />Valor</Button>
-              <Button type="button" size="sm" variant={discountType === 'percentage' ? 'default' : 'outline'}
-                onClick={() => setDiscountType('percentage')}><Percent className="h-3 w-3 mr-1" />%</Button>
+              <Button type="button" size="sm" variant={descontoTipo === 'none' ? 'default' : 'outline'}
+                onClick={() => { setDescontoTipo('none'); setDescontoValor(''); }}>Sem desconto</Button>
+              <Button type="button" size="sm" variant={descontoTipo === 'value' ? 'default' : 'outline'}
+                onClick={() => setDescontoTipo('value')}><DollarSign className="h-3 w-3 mr-1" />Valor</Button>
+              <Button type="button" size="sm" variant={descontoTipo === 'percentage' ? 'default' : 'outline'}
+                onClick={() => setDescontoTipo('percentage')}><Percent className="h-3 w-3 mr-1" />%</Button>
             </div>
-            {discountType !== 'none' && (
+            {descontoTipo !== 'none' && (
               <Input type="number" className="mt-2"
-                placeholder={discountType === 'percentage' ? 'Ex: 10' : 'Ex: 50.00'}
-                value={discountAmount} onChange={e => setDiscountAmount(e.target.value)} />
+                placeholder={descontoTipo === 'percentage' ? 'Ex: 10' : 'Ex: 50.00'}
+                value={descontoValor} onChange={e => setDescontoValor(e.target.value)} min="0" step="0.01" />
             )}
           </div>
 
-          {basePrice > 0 && !hasConflict && (
+          <div>
+            <Label>Observações</Label>
+            <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Observações sobre a edição..." />
+          </div>
+
+          {basePrice > 0 && !conflict && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
-              <p className="text-sm text-muted-foreground">{days} dia(s) × R$ {selectedTrailer?.dailyRate.toFixed(2)}/dia</p>
+              <p className="text-sm text-muted-foreground">{days} dia(s) × R$ {dailyRate.toFixed(2)}/dia</p>
               {discountValue > 0 && (
-                <p className="text-sm text-success">
+                <p className="text-sm text-green-600 dark:text-green-400">
                   Desconto: -R$ {discountValue.toFixed(2)}
-                  {discountType === 'percentage' && ` (${discountAmount}%)`}
+                  {descontoTipo === 'percentage' && ` (${descontoValor}%)`}
                 </p>
               )}
               <p className="text-2xl font-bold font-heading text-primary">R$ {totalPrice.toFixed(2)}</p>
             </div>
           )}
+
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={hasConflict}>
-              Salvar Alterações
+            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict || !!dateError}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
         </div>
