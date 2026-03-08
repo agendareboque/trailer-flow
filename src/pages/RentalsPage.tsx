@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { isAfter, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
 
 interface Aluguel {
