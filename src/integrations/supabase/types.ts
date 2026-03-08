@@ -49,22 +49,91 @@ export type Database = {
       }
       clientes: {
         Row: {
+          cpf: string | null
           created_at: string | null
+          endereco: string | null
           id: string
           nome: string | null
+          observacoes: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string | null
+          observacoes?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string | null
+          observacoes?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      empresas: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string | null
+          plano: string | null
+          status: string | null
           telefone: string | null
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
           id?: string
           nome?: string | null
+          plano?: string | null
+          status?: string | null
           telefone?: string | null
         }
         Update: {
           created_at?: string | null
+          email?: string | null
           id?: string
           nome?: string | null
+          plano?: string | null
+          status?: string | null
           telefone?: string | null
+        }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: {
+          aluguel_id: string | null
+          created_at: string | null
+          empresa_id: string | null
+          forma_pagamento: string | null
+          id: string
+          status: string | null
+          valor: number | null
+        }
+        Insert: {
+          aluguel_id?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          status?: string | null
+          valor?: number | null
+        }
+        Update: {
+          aluguel_id?: string | null
+          created_at?: string | null
+          empresa_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          status?: string | null
+          valor?: number | null
         }
         Relationships: []
       }
@@ -95,6 +164,36 @@ export type Database = {
           status?: string | null
           tipo?: string | null
           valor_diaria?: number | null
+        }
+        Relationships: []
+      }
+      usuarios: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          empresa_id: string | null
+          id: string
+          nome: string | null
+          senha: string | null
+          tipo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome?: string | null
+          senha?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome?: string | null
+          senha?: string | null
+          tipo?: string | null
         }
         Relationships: []
       }
