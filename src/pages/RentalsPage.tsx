@@ -152,7 +152,7 @@ export default function RentalsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((rental, i) => (
-            <motion.div key={rental.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow">
+            <motion.div key={rental.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className={`rounded-xl border p-5 hover:shadow-md transition-shadow ${isOverdue(rental) ? 'bg-destructive/5 border-destructive/30' : 'bg-card'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="font-semibold font-heading">{rental.cliente_nome}</h3>
