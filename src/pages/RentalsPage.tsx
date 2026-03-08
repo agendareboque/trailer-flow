@@ -74,10 +74,15 @@ export default function RentalsPage() {
   };
 
   const handleComplete = async (id: string) => {
+    const rental = rentals.find(r => r.id === id);
     const { error } = await supabase.from('alugueis').update({ status: 'concluido' }).eq('id', id);
     if (error) {
       toast.error('Erro ao concluir');
     } else {
+      // Set trailer back to disponivel
+      if (rental?.reboque_id) {
+        await supabase.from('reboques').update({ status: 'disponivel' }).eq('id', rental.reboque_id);
+      }
       toast.success('Aluguel concluído');
       fetchRentals();
     }

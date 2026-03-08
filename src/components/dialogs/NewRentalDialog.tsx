@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,55 +7,118 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
+import { differenceInDays } from 'date-fns';
+import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+interface ClientOption { id: string; nome: string | null }
+interface TrailerOption { id: string; nome: string | null; placa: string | null; valor_diaria: number | null }
+
 export function NewRentalDialog({ open, onOpenChange }: Props) {
   const { empresaId } = useAuth();
-  const [clients, setClients] = useState<{ id: string; nome: string | null }[]>([]);
-  const [trailers, setTrailers] = useState<{ id: string; nome: string | null; placa: string | null }[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [trailers, setTrailers] = useState<TrailerOption[]>([]);
   const [clienteId, setClienteId] = useState('');
   const [reboqueId, setReboqueId] = useState('');
   const [dataRetirada, setDataRetirada] = useState('');
   const [dataDevolucao, setDataDevolucao] = useState('');
-  const [valor, setValor] = useState('');
+  const [descontoTipo, setDescontoTipo] = useState<'none' | 'value' | 'percentage'>('none');
+  const [descontoValor, setDescontoValor] = useState('');
   const [loading, setLoading] = useState(false);
+  const [conflict, setConflict] = useState(false);
+  const [checkingConflict, setCheckingConflict] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      supabase.from('clientes').select('id, nome').then(({ data }) => setClients(data || []));
-      supabase.from('reboques').select('id, nome, placa').then(({ data }) => setTrailers(data || []));
+    if (open && empresaId) {
+      supabase.from('clientes').select('id, nome').eq('empresa_id', empresaId).then(({ data }) => setClients(data || []));
+      supabase.from('reboques').select('id, nome, placa, valor_diaria').eq('empresa_id', empresaId).then(({ data }) => setTrailers(data || []));
+      // Reset form
+      setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao('');
+      setDescontoTipo('none'); setDescontoValor(''); setConflict(false);
     }
-  }, [open]);
+  }, [open, empresaId]);
+
+  const selectedTrailer = trailers.find(t => t.id === reboqueId);
+  const dailyRate = selectedTrailer?.valor_diaria || 0;
+
+  const days = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao) return 0;
+    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  }, [dataRetirada, dataDevolucao]);
+
+  const basePrice = dailyRate * days;
+
+  const discountValue = useMemo(() => {
+    if (descontoTipo === 'none' || !descontoValor) return 0;
+    const amt = Number(descontoValor);
+    if (descontoTipo === 'percentage') return basePrice * (amt / 100);
+    return amt;
+  }, [descontoTipo, descontoValor, basePrice]);
+
+  const totalPrice = Math.max(basePrice - discountValue, 0);
+
+  // Check for date conflicts
+  useEffect(() => {
+    if (!reboqueId || !dataRetirada || !dataDevolucao) {
+      setConflict(false);
+      return;
+    }
+    let cancelled = false;
+    setCheckingConflict(true);
+    supabase
+      .from('alugueis')
+      .select('id')
+      .eq('reboque_id', reboqueId)
+      .in('status', ['ativo', 'reservado'])
+      .lt('data_retirada', dataDevolucao)
+      .gt('data_devolucao', dataRetirada)
+      .then(({ data }) => {
+        if (!cancelled) {
+          setConflict((data || []).length > 0);
+          setCheckingConflict(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [reboqueId, dataRetirada, dataDevolucao]);
 
   const handleSubmit = async () => {
-    if (!clienteId || !reboqueId || !dataRetirada || !dataDevolucao || !valor) {
-      toast.error('Preencha todos os campos');
+    if (!clienteId || !reboqueId || !dataRetirada || !dataDevolucao) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (conflict) {
+      toast.error('Este reboque já está reservado para o período selecionado.');
       return;
     }
     setLoading(true);
+
+    // Insert rental
     const { error } = await supabase.from('alugueis').insert({
       cliente_id: clienteId,
       reboque_id: reboqueId,
       data_retirada: dataRetirada,
       data_devolucao: dataDevolucao,
-      valor: Number(valor),
-      status: 'ativo',
+      valor: totalPrice,
+      status: 'reservado',
       empresa_id: empresaId,
     });
-    setLoading(false);
 
     if (error) {
       toast.error('Erro ao registrar aluguel');
       console.error(error);
+      setLoading(false);
       return;
     }
 
-    toast.success('Aluguel registrado!');
-    setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao(''); setValor('');
+    // Update trailer status to "alugado"
+    await supabase.from('reboques').update({ status: 'alugado' }).eq('id', reboqueId);
+
+    setLoading(false);
+    toast.success(`Aluguel registrado! Total: R$ ${totalPrice.toFixed(2)}`);
     onOpenChange(false);
     window.dispatchEvent(new Event('rentals-updated'));
   };
@@ -67,6 +130,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           <DialogTitle className="font-heading">Novo Aluguel</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Cliente */}
           <div>
             <Label>Cliente *</Label>
             <Select value={clienteId} onValueChange={setClienteId}>
@@ -78,17 +142,23 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Reboque */}
           <div>
             <Label>Reboque *</Label>
             <Select value={reboqueId} onValueChange={setReboqueId}>
               <SelectTrigger><SelectValue placeholder="Selecione o reboque" /></SelectTrigger>
               <SelectContent>
                 {trailers.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.placa} — {t.nome || 'Sem nome'}</SelectItem>
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.placa} — {t.nome || 'Sem nome'} (R$ {(t.valor_diaria || 0).toFixed(2)}/dia)
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data Retirada *</Label>
@@ -99,13 +169,65 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
               <Input type="date" value={dataDevolucao} onChange={e => setDataDevolucao(e.target.value)} />
             </div>
           </div>
+
+          {/* Conflict warning */}
+          {conflict && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive text-sm">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span>Este reboque já está reservado para o período selecionado.</span>
+            </div>
+          )}
+
+          {/* Auto-filled info */}
+          {selectedTrailer && days > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-muted-foreground text-xs">Valor Diária</Label>
+                <p className="font-semibold">R$ {dailyRate.toFixed(2)}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">Dias</Label>
+                <p className="font-semibold">{days} dia(s)</p>
+              </div>
+            </div>
+          )}
+
+          {/* Discount */}
           <div>
-            <Label>Valor Total (R$) *</Label>
-            <Input type="number" value={valor} onChange={e => setValor(e.target.value)} placeholder="500.00" min="0" step="0.01" />
+            <Label>Desconto</Label>
+            <div className="flex gap-2 mt-1">
+              <Button type="button" size="sm" variant={descontoTipo === 'none' ? 'default' : 'outline'}
+                onClick={() => { setDescontoTipo('none'); setDescontoValor(''); }}>Sem desconto</Button>
+              <Button type="button" size="sm" variant={descontoTipo === 'value' ? 'default' : 'outline'}
+                onClick={() => setDescontoTipo('value')}><DollarSign className="h-3 w-3 mr-1" />Valor</Button>
+              <Button type="button" size="sm" variant={descontoTipo === 'percentage' ? 'default' : 'outline'}
+                onClick={() => setDescontoTipo('percentage')}><Percent className="h-3 w-3 mr-1" />%</Button>
+            </div>
+            {descontoTipo !== 'none' && (
+              <Input type="number" className="mt-2"
+                placeholder={descontoTipo === 'percentage' ? 'Ex: 10' : 'Ex: 50.00'}
+                value={descontoValor} onChange={e => setDescontoValor(e.target.value)} min="0" step="0.01" />
+            )}
           </div>
+
+          {/* Total */}
+          {basePrice > 0 && !conflict && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
+              <p className="text-sm text-muted-foreground">{days} dia(s) × R$ {dailyRate.toFixed(2)}/dia</p>
+              {discountValue > 0 && (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  Desconto: -R$ {discountValue.toFixed(2)}
+                  {descontoTipo === 'percentage' && ` (${descontoValor}%)`}
+                </p>
+              )}
+              <p className="text-2xl font-bold font-heading text-primary">R$ {totalPrice.toFixed(2)}</p>
+            </div>
+          )}
+
+          {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
+            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict}>
               {loading ? 'Salvando...' : 'Registrar Aluguel'}
             </Button>
           </div>
