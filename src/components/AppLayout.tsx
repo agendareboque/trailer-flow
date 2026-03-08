@@ -3,6 +3,9 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/lib/auth-context';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
+import { useTheme } from '@/hooks/use-theme';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
