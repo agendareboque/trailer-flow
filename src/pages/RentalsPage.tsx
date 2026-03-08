@@ -3,12 +3,13 @@ import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/hooks/use-store';
 import { store } from '@/lib/store';
+import { getPaymentLabel } from '@/lib/mock-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function RentalsPage() {
@@ -33,7 +34,7 @@ export default function RentalsPage() {
     <AppLayout>
       <div className="page-header">
         <h1 className="page-title">Aluguéis</h1>
-        <p className="page-subtitle">Gerencie locações de reboques</p>
+        <p className="page-subtitle">Gerencie locações e agendamentos</p>
       </div>
 
       <div className="mb-6">
@@ -44,6 +45,7 @@ export default function RentalsPage() {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="active">Ativos</SelectItem>
+            <SelectItem value="scheduled">Agendados</SelectItem>
             <SelectItem value="completed">Concluídos</SelectItem>
             <SelectItem value="cancelled">Cancelados</SelectItem>
           </SelectContent>
@@ -55,6 +57,7 @@ export default function RentalsPage() {
           const client = clients.find(c => c.id === rental.clientId);
           const trailer = trailers.find(t => t.id === rental.trailerId);
           const model = trailer ? models.find(m => m.id === trailer.modelId) : null;
+          const paymentLabel = getPaymentLabel(rental.paymentMethod);
 
           return (
             <motion.div
@@ -77,6 +80,12 @@ export default function RentalsPage() {
                     <p className="text-sm text-muted-foreground">
                       {model?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
                     </p>
+                    {paymentLabel && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <CreditCard className="h-3 w-3" />
+                        {paymentLabel}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -90,7 +99,7 @@ export default function RentalsPage() {
                     </p>
                   </div>
                   <StatusBadge status={rental.status} />
-                  {rental.status === 'active' && (
+                  {(rental.status === 'active' || rental.status === 'scheduled') && (
                     <div className="flex gap-1">
                       <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Concluir">
                         <CheckCircle className="h-4 w-4" />
