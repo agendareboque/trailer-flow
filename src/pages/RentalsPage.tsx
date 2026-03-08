@@ -178,8 +178,11 @@ export default function RentalsPage() {
                       <AlertTriangle className="h-3.5 w-3.5" /> Atrasado
                     </span>
                   )}
-                  {(rental.status === 'reservado' || rental.status === 'em_uso' || isOverdue(rental)) && (
+                  {rental.status !== 'finalizado' && rental.status !== 'cancelado' && (
                     <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setEditingRental(rental)} title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       {(rental.status === 'em_uso' || isOverdue(rental)) && (
                         <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
                           <CheckCircle className="h-4 w-4" />
