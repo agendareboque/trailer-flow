@@ -142,7 +142,7 @@ export default function RentalsPage() {
             <SelectItem value="reservado">Reservados</SelectItem>
             <SelectItem value="em_uso">Em Uso</SelectItem>
             <SelectItem value="finalizado">Finalizados</SelectItem>
-            <SelectItem value="cancelado">Cancelados</SelectItem>
+            <SelectItem value="atrasado">Atrasados</SelectItem>
           </SelectContent>
         </Select>
       </div>
