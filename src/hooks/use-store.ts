@@ -1,6 +1,7 @@
 import { useSyncExternalStore, useCallback } from 'react';
 import { store } from '@/lib/store';
 import type { PermissionPage } from '@/lib/store';
+import type { Employee } from '@/lib/mock-data';
 
 interface StoreSnapshot {
   trailers: ReturnType<typeof store.getTrailers>;
@@ -10,10 +11,11 @@ interface StoreSnapshot {
   models: ReturnType<typeof store.getModels>;
   notifications: ReturnType<typeof store.getNotifications>;
   employeePermissions: Set<PermissionPage>;
+  employees: Employee[];
 }
 
 let cachedSnapshot: StoreSnapshot | null = null;
-let cachedArrays: [any, any, any, any, any, any] | null = null;
+let cachedArrays: [any, any, any, any, any, any, any] | null = null;
 
 function getSnapshot(): StoreSnapshot {
   const t = store.getTrailers();
@@ -22,6 +24,7 @@ function getSnapshot(): StoreSnapshot {
   const m = store.getMaintenance();
   const mo = store.getModels();
   const ep = store.getEmployeePermissions();
+  const em = store.getEmployees();
 
   if (
     cachedArrays &&
@@ -31,12 +34,13 @@ function getSnapshot(): StoreSnapshot {
     cachedArrays[3] === m &&
     cachedArrays[4] === mo &&
     cachedArrays[5] === ep &&
+    cachedArrays[6] === em &&
     cachedSnapshot
   ) {
     return cachedSnapshot;
   }
 
-  cachedArrays = [t, c, r, m, mo, ep];
+  cachedArrays = [t, c, r, m, mo, ep, em];
   cachedSnapshot = {
     trailers: t,
     clients: c,
@@ -45,6 +49,7 @@ function getSnapshot(): StoreSnapshot {
     models: mo,
     notifications: store.getNotifications(),
     employeePermissions: ep,
+    employees: em,
   };
   return cachedSnapshot;
 }
