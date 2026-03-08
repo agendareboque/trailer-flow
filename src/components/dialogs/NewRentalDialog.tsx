@@ -43,6 +43,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
       // Reset form
       setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao('');
       setDescontoTipo('none'); setDescontoValor(''); setConflict(false); setConflictDetails([]);
+      setShowNewClientForm(false);
     }
   }, [open, empresaId]);
 
