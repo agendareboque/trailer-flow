@@ -339,7 +339,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict}>
+            <Button className="flex-1" onClick={handleSubmit} disabled={loading || conflict || checkingConflict || !!dateError}>
               {loading ? 'Salvando...' : 'Registrar Aluguel'}
             </Button>
           </div>
