@@ -79,19 +79,15 @@ export const store = {
 
   // Add rental — now allows any trailer (not just available), validates conflicts
   addRental(data: Omit<Rental, 'id' | 'createdAt'>) {
-    // Check for date conflict
     if (this.hasDateConflict(data.trailerId, data.startDate, data.endDate)) {
-      return null; // conflict
+      return null;
     }
-
     const rental: Rental = {
       ...data,
       id: 'r' + Date.now(),
       createdAt: new Date().toISOString().split('T')[0],
     };
     rentals = [rental, ...rentals];
-
-    // Only mark as rented if rental starts today or earlier
     const today = new Date().toISOString().split('T')[0];
     if (data.startDate <= today) {
       trailers = trailers.map(t =>
@@ -100,6 +96,47 @@ export const store = {
     }
     notify();
     return rental;
+  },
+
+  // Update an existing rental
+  updateRental(rentalId: string, updates: Partial<Omit<Rental, 'id' | 'createdAt'>>) {
+    const existing = rentals.find(r => r.id === rentalId);
+    if (!existing) return false;
+
+    const newTrailerId = updates.trailerId || existing.trailerId;
+    const newStart = updates.startDate || existing.startDate;
+    const newEnd = updates.endDate || existing.endDate;
+
+    // Check conflict if dates or trailer changed
+    if (newTrailerId !== existing.trailerId || newStart !== existing.startDate || newEnd !== existing.endDate) {
+      if (this.hasDateConflict(newTrailerId, newStart, newEnd, rentalId)) {
+        return false;
+      }
+    }
+
+    // If trailer changed, free old trailer
+    if (updates.trailerId && updates.trailerId !== existing.trailerId) {
+      const hasOtherOnOld = rentals.some(r =>
+        r.id !== rentalId && r.trailerId === existing.trailerId && (r.status === 'active' || r.status === 'scheduled')
+      );
+      if (!hasOtherOnOld) {
+        trailers = trailers.map(t =>
+          t.id === existing.trailerId ? { ...t, status: 'available' as const } : t
+        );
+      }
+      const today = new Date().toISOString().split('T')[0];
+      if (newStart <= today && (updates.status || existing.status) === 'active') {
+        trailers = trailers.map(t =>
+          t.id === updates.trailerId ? { ...t, status: 'rented' as const } : t
+        );
+      }
+    }
+
+    rentals = rentals.map(r =>
+      r.id === rentalId ? { ...r, ...updates } : r
+    );
+    notify();
+    return true;
   },
 
   completeRental(rentalId: string, actualKm?: number) {

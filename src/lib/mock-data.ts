@@ -51,6 +51,9 @@ export interface Rental {
   startDate: string;
   endDate: string;
   estimatedKm: number;
+  basePrice: number;
+  discountType?: 'value' | 'percentage';
+  discountAmount?: number;
   totalPrice: number;
   status: 'active' | 'completed' | 'cancelled' | 'scheduled';
   paymentMethod?: string;
