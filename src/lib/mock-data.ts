@@ -47,6 +47,12 @@ export interface TrailerUnit {
   maintenanceIntervalKm: number;
 }
 
+export interface ClientRating {
+  rentalId: string;
+  rating: number; // 1-5
+  comment?: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -59,10 +65,16 @@ export interface Client {
     state: string;
     zip: string;
   };
-  score: number;
+  ratings: ClientRating[];
   totalRentals: number;
   lateReturns: number;
   notes: string;
+}
+
+export function getClientAverageRating(client: Client): number {
+  if (client.ratings.length === 0) return 0;
+  const sum = client.ratings.reduce((acc, r) => acc + r.rating, 0);
+  return sum / client.ratings.length;
 }
 
 export interface Rental {
