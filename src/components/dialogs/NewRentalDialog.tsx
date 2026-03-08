@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
-import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
+import { AlertTriangle, Percent, DollarSign, UserPlus } from 'lucide-react';
+import { InlineNewClientForm } from './InlineNewClientForm';
+import { AnimatePresence } from 'framer-motion';
 
 interface Props {
   open: boolean;
@@ -32,6 +34,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const [conflict, setConflict] = useState(false);
   const [conflictDetails, setConflictDetails] = useState<{ cliente_nome: string; data_retirada: string; data_devolucao: string }[]>([]);
   const [checkingConflict, setCheckingConflict] = useState(false);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
 
   useEffect(() => {
     if (open && empresaId) {
@@ -40,6 +43,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
       // Reset form
       setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao('');
       setDescontoTipo('none'); setDescontoValor(''); setConflict(false); setConflictDetails([]);
+      setShowNewClientForm(false);
     }
   }, [open, empresaId]);
 
@@ -184,15 +188,44 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           {/* Cliente */}
           <div>
             <Label>Cliente *</Label>
-            <Select value={clienteId} onValueChange={setClienteId}>
+            <Select value={clienteId} onValueChange={(val) => {
+              if (val === '__new__') {
+                setShowNewClientForm(true);
+              } else {
+                setClienteId(val);
+              }
+            }}>
               <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="__new__">
+                  <span className="flex items-center gap-1 text-primary font-medium">
+                    <UserPlus className="h-3.5 w-3.5" /> Cadastrar novo cliente
+                  </span>
+                </SelectItem>
                 {clients.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.nome || 'Sem nome'}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Inline new client form */}
+          <AnimatePresence>
+            {showNewClientForm && empresaId && (
+              <InlineNewClientForm
+                empresaId={empresaId}
+                onCancel={() => setShowNewClientForm(false)}
+                onCreated={(newId) => {
+                  setShowNewClientForm(false);
+                  // Refresh clients list and select new one
+                  supabase.from('clientes').select('id, nome').eq('empresa_id', empresaId).then(({ data }) => {
+                    setClients(data || []);
+                    setClienteId(newId);
+                  });
+                }}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Reboque */}
           <div>
