@@ -30,6 +30,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const [descontoValor, setDescontoValor] = useState('');
   const [loading, setLoading] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState<{ cliente_nome: string; data_retirada: string; data_devolucao: string }[]>([]);
   const [checkingConflict, setCheckingConflict] = useState(false);
 
   useEffect(() => {
