@@ -43,6 +43,10 @@ const adminItems = [
   { title: 'Configurações', url: '/settings', icon: Settings },
 ];
 
+const superAdminItems = [
+  { title: 'Painel SaaS', url: '/admin', icon: Shield },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
