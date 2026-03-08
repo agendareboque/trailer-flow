@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alugueis: {
+        Row: {
+          cliente_id: string | null
+          created_at: string | null
+          data_devolucao: string | null
+          data_retirada: string | null
+          id: string
+          reboque_id: string | null
+          status: string | null
+          valor: number | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string | null
+          data_devolucao?: string | null
+          data_retirada?: string | null
+          id?: string
+          reboque_id?: string | null
+          status?: string | null
+          valor?: number | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string | null
+          data_devolucao?: string | null
+          data_retirada?: string | null
+          id?: string
+          reboque_id?: string | null
+          status?: string | null
+          valor?: number | null
+        }
+        Relationships: []
+      }
+      clientes: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string | null
+          telefone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      reboques: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string | null
+          placa: string | null
+          status: string | null
+          tipo: string | null
+          valor_diaria: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome?: string | null
+          placa?: string | null
+          status?: string | null
+          tipo?: string | null
+          valor_diaria?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string | null
+          placa?: string | null
+          status?: string | null
+          tipo?: string | null
+          valor_diaria?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
