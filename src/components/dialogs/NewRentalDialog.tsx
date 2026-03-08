@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
-import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
+import { AlertTriangle, Percent, DollarSign, UserPlus } from 'lucide-react';
+import { InlineNewClientForm } from './InlineNewClientForm';
+import { AnimatePresence } from 'framer-motion';
 
 interface Props {
   open: boolean;
