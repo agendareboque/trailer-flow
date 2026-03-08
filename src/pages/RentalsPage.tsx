@@ -178,7 +178,7 @@ export default function RentalsPage() {
                   )}
                   {(rental.status === 'reservado' || rental.status === 'em_uso' || isOverdue(rental)) && (
                     <div className="flex gap-1">
-                      {rental.status === 'em_uso' && (
+                      {(rental.status === 'em_uso' || isOverdue(rental)) && (
                         <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
                           <CheckCircle className="h-4 w-4" />
                         </Button>

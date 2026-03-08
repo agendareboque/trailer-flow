@@ -223,7 +223,7 @@ export function getStatusColor(status: string): string {
     case 'reservado': return 'bg-warning/10 text-warning';
     case 'em_uso': return 'bg-primary/10 text-primary';
     case 'finalizado': return 'bg-success/10 text-success';
-    case 'cancelado': return 'bg-destructive/10 text-destructive';
+    case 'atrasado': return 'bg-destructive/10 text-destructive';
     default: return 'bg-muted text-muted-foreground';
   }
 }
@@ -241,6 +241,7 @@ export function getStatusLabel(status: string): string {
     em_uso: 'Em Uso',
     finalizado: 'Finalizado',
     cancelado: 'Cancelado',
+    atrasado: 'Atrasado',
   };
   return labels[status] || status;
 }
