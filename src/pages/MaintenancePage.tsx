@@ -7,13 +7,14 @@ import { motion } from 'framer-motion';
 import { Wrench } from 'lucide-react';
 
 export default function MaintenancePage() {
-  const { trailers, models, maintenance } = useStore();
+  const { trailers, maintenance } = useStore();
 
   const trailersWithMaint = trailers.map(t => ({
     ...t,
-    model: models.find(m => m.id === t.modelId),
     records: maintenance.filter(m => m.trailerId === t.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    kmProgress: ((t.totalKm - t.lastMaintenanceKm) / (t.nextMaintenanceKm - t.lastMaintenanceKm)) * 100,
+    kmProgress: t.nextMaintenanceKm > t.lastMaintenanceKm
+      ? ((t.totalKm - t.lastMaintenanceKm) / (t.nextMaintenanceKm - t.lastMaintenanceKm)) * 100
+      : 0,
   }));
 
   return (
@@ -38,7 +39,7 @@ export default function MaintenancePage() {
                   <div className="w-3 h-12 rounded-full" style={{ backgroundColor: trailer.color }} />
                   <div>
                     <h3 className="font-semibold font-heading">{trailer.plate}</h3>
-                    <p className="text-sm text-muted-foreground">{trailer.model?.name}</p>
+                    <p className="text-sm text-muted-foreground">{trailer.name}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
