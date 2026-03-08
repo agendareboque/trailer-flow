@@ -7,7 +7,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMont
 import { ptBR } from 'date-fns/locale';
 
 export default function CalendarPage() {
-  const { trailers, rentals, models } = useStore();
+  const { trailers, rentals } = useStore();
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1));
 
   const monthStart = startOfMonth(currentMonth);
@@ -58,15 +58,13 @@ export default function CalendarPage() {
             ))}
           </div>
 
-          {activeTrailers.map(trailer => {
-            const model = models.find(m => m.id === trailer.modelId);
-            return (
+          {activeTrailers.map(trailer => (
               <div key={trailer.id} className="grid gap-px border-b" style={{ gridTemplateColumns: `120px repeat(${days.length}, 1fr)` }}>
                 <div className="p-2 flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: trailer.color }} />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{trailer.plate}</p>
-                    <p className="text-xs text-muted-foreground truncate">{model?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{trailer.name}</p>
                   </div>
                 </div>
                 {days.map(day => {
@@ -78,8 +76,7 @@ export default function CalendarPage() {
                   );
                 })}
               </div>
-            );
-          })}
+          ))}
         </div>
       </div>
 

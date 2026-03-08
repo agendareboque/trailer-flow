@@ -14,7 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import type { DateRange } from 'react-day-picker';
 
 export default function ReportsPage() {
-  const { trailers, rentals, models } = useStore();
+  const { trailers, rentals } = useStore();
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(2026, 0, 1),
@@ -29,7 +29,6 @@ export default function ReportsPage() {
     const totalPeriodDays = differenceInDays(periodEnd, periodStart) + 1;
 
     const trailerStats = trailers.map(trailer => {
-      const model = models.find(m => m.id === trailer.modelId);
 
       // All rentals for this trailer that overlap the selected period (not cancelled)
       const trailerRentals = rentals.filter(r => {
@@ -68,7 +67,7 @@ export default function ReportsPage() {
       return {
         id: trailer.id,
         plate: trailer.plate,
-        modelName: model?.name || '—',
+        modelName: trailer.name,
         color: trailer.color,
         rentalCount: trailerRentals.length,
         rentedDays,
@@ -96,7 +95,7 @@ export default function ReportsPage() {
       totalPeriodDays,
       neverRented,
     };
-  }, [dateRange, trailers, rentals, models]);
+  }, [dateRange, trailers, rentals]);
 
   const getOccupancyColor = (rate: number) => {
     if (rate >= 70) return 'text-success';

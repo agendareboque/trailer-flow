@@ -26,7 +26,7 @@ const paymentMethods = [
 ];
 
 export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
-  const { clients, trailers, models, rentals } = useStore();
+  const { clients, trailers, rentals } = useStore();
   const [clientId, setClientId] = useState(rental.clientId);
   const [trailerId, setTrailerId] = useState(rental.trailerId);
   const [startDate, setStartDate] = useState(rental.startDate);
@@ -50,10 +50,9 @@ export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
 
   const bookableTrailers = trailers.filter(t => t.status !== 'maintenance');
   const selectedTrailer = trailers.find(t => t.id === trailerId);
-  const model = selectedTrailer ? models.find(m => m.id === selectedTrailer.modelId) : null;
 
   const days = startDate && endDate ? Math.max(differenceInDays(new Date(endDate), new Date(startDate)), 1) : 0;
-  const basePrice = model ? days * model.dailyRate : 0;
+  const basePrice = selectedTrailer ? days * selectedTrailer.dailyRate : 0;
 
   const discountValue = useMemo(() => {
     if (discountType === 'none' || !discountAmount) return 0;
@@ -127,20 +126,17 @@ export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
             <Select value={trailerId} onValueChange={setTrailerId}>
               <SelectTrigger><SelectValue placeholder="Selecione o reboque" /></SelectTrigger>
               <SelectContent>
-                {bookableTrailers.map(t => {
-                  const m = models.find(x => x.id === t.modelId);
-                  return (
-                    <SelectItem key={t.id} value={t.id}>
-                      <div className="flex items-center gap-2">
-                        <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
-                        <span>{t.plate} — {m?.name}</span>
-                        {t.status === 'rented' && t.id !== rental.trailerId && (
-                          <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">em uso</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
+                {bookableTrailers.map(t => (
+                  <SelectItem key={t.id} value={t.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
+                      <span>{t.plate} — {t.name}</span>
+                      {t.status === 'rented' && t.id !== rental.trailerId && (
+                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">em uso</span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -215,7 +211,7 @@ export function EditRentalDialog({ open, onOpenChange, rental }: Props) {
 
           {basePrice > 0 && !hasConflict && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
-              <p className="text-sm text-muted-foreground">{days} dia(s) × R$ {model?.dailyRate.toFixed(2)}/dia</p>
+              <p className="text-sm text-muted-foreground">{days} dia(s) × R$ {selectedTrailer?.dailyRate.toFixed(2)}/dia</p>
               {discountValue > 0 && (
                 <p className="text-sm text-success">
                   Desconto: -R$ {discountValue.toFixed(2)}

@@ -14,7 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { EditRentalDialog } from '@/components/dialogs/EditRentalDialog';
 
 export default function RentalsPage() {
-  const { rentals, clients, trailers, models } = useStore();
+  const { rentals, clients, trailers } = useStore();
   const [filterStatus, setFilterStatus] = useState('all');
   const [editingRental, setEditingRental] = useState<Rental | null>(null);
 
@@ -58,7 +58,6 @@ export default function RentalsPage() {
         {filtered.map((rental, i) => {
           const client = clients.find(c => c.id === rental.clientId);
           const trailer = trailers.find(t => t.id === rental.trailerId);
-          const model = trailer ? models.find(m => m.id === trailer.modelId) : null;
           const paymentLabel = getPaymentLabel(rental.paymentMethod);
           const hasDiscount = rental.discountType && rental.discountAmount;
 
@@ -82,7 +81,7 @@ export default function RentalsPage() {
                   <div>
                     <h3 className="font-semibold font-heading">{client?.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {model?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
+                      {trailer?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
                     </p>
                     <div className="flex items-center gap-3 mt-0.5">
                       {paymentLabel && (

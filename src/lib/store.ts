@@ -189,13 +189,13 @@ export const store = {
     return client;
   },
 
-  addTrailer(data: Omit<TrailerUnit, 'id' | 'totalKm' | 'lastMaintenanceKm' | 'nextMaintenanceKm'> & { nextMaintenanceKm?: number }) {
+  addTrailer(data: Omit<TrailerUnit, 'id' | 'totalKm' | 'lastMaintenanceKm' | 'nextMaintenanceKm'>) {
     const trailer: TrailerUnit = {
       ...data,
       id: 't' + Date.now(),
       totalKm: 0,
       lastMaintenanceKm: 0,
-      nextMaintenanceKm: data.nextMaintenanceKm ?? 5000,
+      nextMaintenanceKm: data.maintenanceIntervalKm || 5000,
     };
     trailers = [trailer, ...trailers];
     notify();
