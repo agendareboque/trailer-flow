@@ -235,6 +235,41 @@ export const store = {
     return employeePermissions.has(page);
   },
 
+  // Employee management
+  addEmployee(data: Omit<Employee, 'id' | 'createdAt' | 'lastActiveAt' | 'totalRentalsCreated' | 'totalClientsCreated' | 'totalMaintenanceCreated'>) {
+    const employee: Employee = {
+      ...data,
+      id: 'emp' + Date.now(),
+      createdAt: new Date().toISOString().split('T')[0],
+      lastActiveAt: new Date().toISOString(),
+      totalRentalsCreated: 0,
+      totalClientsCreated: 0,
+      totalMaintenanceCreated: 0,
+    };
+    employees = [employee, ...employees];
+    notify();
+    return employee;
+  },
+
+  updateEmployee(employeeId: string, updates: Partial<Employee>) {
+    employees = employees.map(e =>
+      e.id === employeeId ? { ...e, ...updates } : e
+    );
+    notify();
+  },
+
+  toggleEmployeeStatus(employeeId: string) {
+    employees = employees.map(e =>
+      e.id === employeeId ? { ...e, status: e.status === 'active' ? 'inactive' as const : 'active' as const } : e
+    );
+    notify();
+  },
+
+  removeEmployee(employeeId: string) {
+    employees = employees.filter(e => e.id !== employeeId);
+    notify();
+  },
+
   // Notifications
   getNotifications() {
     const today = new Date();
