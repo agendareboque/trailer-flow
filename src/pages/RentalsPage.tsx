@@ -32,6 +32,7 @@ export default function RentalsPage() {
   const [rentals, setRentals] = useState<Aluguel[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [editingRental, setEditingRental] = useState<Aluguel | null>(null);
 
   const fetchRentals = async () => {
     if (!empresaId) return;
