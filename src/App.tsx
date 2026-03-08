@@ -14,6 +14,7 @@ import MaintenancePage from "./pages/MaintenancePage";
 import FinancialPage from "./pages/FinancialPage";
 import SettingsPage from "./pages/SettingsPage";
 import ReportsPage from "./pages/ReportsPage";
+import SalesPage from "./pages/SalesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
