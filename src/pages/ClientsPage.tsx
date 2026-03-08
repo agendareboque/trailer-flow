@@ -37,6 +37,9 @@ export default function ClientsPage() {
 
   useEffect(() => {
     fetchClients();
+    const handler = () => fetchClients();
+    window.addEventListener('clients-updated', handler);
+    return () => window.removeEventListener('clients-updated', handler);
   }, []);
 
   const filtered = clients.filter(c =>
