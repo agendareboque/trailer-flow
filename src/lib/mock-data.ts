@@ -90,6 +90,21 @@ export interface MaintenanceRecord {
   km: number;
 }
 
+export interface Sale {
+  id: string;
+  type: 'purchase' | 'sale';
+  trailerId?: string;
+  trailerName: string;
+  trailerPlate: string;
+  buyerOrSeller: string;
+  document: string;
+  price: number;
+  date: string;
+  paymentMethod: string;
+  notes: string;
+  createdAt: string;
+}
+
 export const mockEmployees: Employee[] = [
   {
     id: 'emp1', name: 'Maria Funcionária', email: 'maria@trailerrent.com', phone: '(11) 98888-0001',
