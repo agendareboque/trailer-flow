@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
 
 interface Props {
@@ -30,6 +30,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const [descontoValor, setDescontoValor] = useState('');
   const [loading, setLoading] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState<{ cliente_nome: string; data_retirada: string; data_devolucao: string }[]>([]);
   const [checkingConflict, setCheckingConflict] = useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
       supabase.from('reboques').select('id, nome, placa, valor_diaria').eq('empresa_id', empresaId).then(({ data }) => setTrailers(data || []));
       // Reset form
       setClienteId(''); setReboqueId(''); setDataRetirada(''); setDataDevolucao('');
-      setDescontoTipo('none'); setDescontoValor(''); setConflict(false);
+      setDescontoTipo('none'); setDescontoValor(''); setConflict(false); setConflictDetails([]);
     }
   }, [open, empresaId]);
 
@@ -65,20 +66,27 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   useEffect(() => {
     if (!reboqueId || !dataRetirada || !dataDevolucao) {
       setConflict(false);
+      setConflictDetails([]);
       return;
     }
     let cancelled = false;
     setCheckingConflict(true);
     supabase
       .from('alugueis')
-      .select('id')
+      .select('id, data_retirada, data_devolucao, clientes(nome)')
       .eq('reboque_id', reboqueId)
       .in('status', ['ativo', 'reservado'])
       .lt('data_retirada', dataDevolucao)
       .gt('data_devolucao', dataRetirada)
       .then(({ data }) => {
         if (!cancelled) {
-          setConflict((data || []).length > 0);
+          const items = (data || []) as any[];
+          setConflict(items.length > 0);
+          setConflictDetails(items.map((r: any) => ({
+            cliente_nome: r.clientes?.nome || 'Desconhecido',
+            data_retirada: r.data_retirada,
+            data_devolucao: r.data_devolucao,
+          })));
           setCheckingConflict(false);
         }
       });
@@ -171,10 +179,21 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           </div>
 
           {/* Conflict warning */}
-          {conflict && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive text-sm">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>Este reboque já está reservado para o período selecionado.</span>
+          {conflict && conflictDetails.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-destructive text-sm font-semibold">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                <span>Este reboque já está reservado para o período selecionado.</span>
+              </div>
+              {conflictDetails.map((c, idx) => (
+                <div key={idx} className="text-sm text-muted-foreground pl-6">
+                  <span className="font-medium text-foreground">{c.cliente_nome}</span>
+                  {' — '}
+                  {c.data_retirada ? format(new Date(c.data_retirada), "dd/MM/yyyy") : '?'}
+                  {' até '}
+                  {c.data_devolucao ? format(new Date(c.data_devolucao), "dd/MM/yyyy") : '?'}
+                </div>
+              ))}
             </div>
           )}
 
