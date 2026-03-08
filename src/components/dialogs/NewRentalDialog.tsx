@@ -153,6 +153,10 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
+    if (dateError) {
+      toast.error(dateError);
+      return;
+    }
     if (conflict) {
       toast.error('Este reboque já está reservado para o período selecionado.');
       return;
