@@ -20,6 +20,7 @@ export type Database = {
           created_at: string | null
           data_devolucao: string | null
           data_retirada: string | null
+          empresa_id: string | null
           id: string
           reboque_id: string | null
           status: string | null
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string | null
           data_devolucao?: string | null
           data_retirada?: string | null
+          empresa_id?: string | null
           id?: string
           reboque_id?: string | null
           status?: string | null
@@ -40,17 +42,27 @@ export type Database = {
           created_at?: string | null
           data_devolucao?: string | null
           data_retirada?: string | null
+          empresa_id?: string | null
           id?: string
           reboque_id?: string | null
           status?: string | null
           valor?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "alugueis_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes: {
         Row: {
           cpf: string | null
           created_at: string | null
+          empresa_id: string | null
           endereco: string | null
           id: string
           nome: string | null
@@ -60,6 +72,7 @@ export type Database = {
         Insert: {
           cpf?: string | null
           created_at?: string | null
+          empresa_id?: string | null
           endereco?: string | null
           id?: string
           nome?: string | null
@@ -69,13 +82,22 @@ export type Database = {
         Update: {
           cpf?: string | null
           created_at?: string | null
+          empresa_id?: string | null
           endereco?: string | null
           id?: string
           nome?: string | null
           observacoes?: string | null
           telefone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       empresas: {
         Row: {
@@ -86,6 +108,7 @@ export type Database = {
           plano: string | null
           status: string | null
           telefone: string | null
+          trial_ends_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -95,6 +118,7 @@ export type Database = {
           plano?: string | null
           status?: string | null
           telefone?: string | null
+          trial_ends_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -104,6 +128,7 @@ export type Database = {
           plano?: string | null
           status?: string | null
           telefone?: string | null
+          trial_ends_at?: string | null
         }
         Relationships: []
       }
@@ -137,9 +162,42 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          empresa_id: string | null
+          id: string
+          nome: string | null
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string | null
+          id: string
+          nome?: string | null
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          nome?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reboques: {
         Row: {
           created_at: string | null
+          empresa_id: string | null
           id: string
           nome: string | null
           placa: string | null
@@ -149,6 +207,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          empresa_id?: string | null
           id?: string
           nome?: string | null
           placa?: string | null
@@ -158,6 +217,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          empresa_id?: string | null
           id?: string
           nome?: string | null
           placa?: string | null
@@ -165,7 +225,15 @@ export type Database = {
           tipo?: string | null
           valor_diaria?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reboques_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usuarios: {
         Row: {
@@ -202,7 +270,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_empresa_id: { Args: never; Returns: string }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
