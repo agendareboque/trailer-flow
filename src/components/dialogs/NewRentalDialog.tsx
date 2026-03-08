@@ -34,6 +34,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const [conflict, setConflict] = useState(false);
   const [conflictDetails, setConflictDetails] = useState<{ cliente_nome: string; data_retirada: string; data_devolucao: string }[]>([]);
   const [checkingConflict, setCheckingConflict] = useState(false);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
 
   useEffect(() => {
     if (open && empresaId) {
