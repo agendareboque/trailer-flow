@@ -37,6 +37,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreated }: Props) 
     setPhone('');
     onOpenChange(false);
     onClientCreated?.();
+    window.dispatchEvent(new Event('clients-updated'));
   };
 
   return (
