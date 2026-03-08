@@ -175,6 +175,12 @@ export const mockMaintenance: MaintenanceRecord[] = [
   { id: 'mt5', trailerId: 't5', date: '2026-01-10', description: 'Troca de óleo e filtros', cost: 250, km: 30000 },
 ];
 
+export const mockSales: Sale[] = [
+  { id: 's1', type: 'purchase', trailerName: 'Carretinha Leve #1', trailerPlate: 'ABC-1234', buyerOrSeller: 'Reboques Brasil LTDA', document: '12.345.678/0001-90', price: 15000, date: '2025-01-10', paymentMethod: 'boleto', notes: 'Compra inicial da frota', createdAt: '2025-01-10' },
+  { id: 's2', type: 'purchase', trailerName: 'Reboque Pesado #1', trailerPlate: 'MNO-7890', buyerOrSeller: 'Auto Reboques SP', document: '98.765.432/0001-10', price: 32000, date: '2025-03-15', paymentMethod: 'pix', notes: '', createdAt: '2025-03-15' },
+  { id: 's3', type: 'sale', trailerName: 'Carretinha Antiga', trailerPlate: 'OLD-0001', buyerOrSeller: 'Pedro Comprador', document: '111.222.333-44', price: 8500, date: '2025-11-20', paymentMethod: 'pix', notes: 'Reboque antigo vendido', createdAt: '2025-11-20' },
+];
+
 export function getModelById(id: string) {
   return mockModels.find(m => m.id === id);
 }
