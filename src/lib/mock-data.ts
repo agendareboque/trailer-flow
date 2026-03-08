@@ -1,4 +1,4 @@
-// Mock data for Agendareboque
+// Mock data for Agendareboqueue
 
 export interface User {
   id: string;
@@ -119,7 +119,7 @@ export interface Sale {
 
 export const mockEmployees: Employee[] = [
   {
-    id: 'emp1', name: 'Maria Funcionária', email: 'maria@trailerrent.com', phone: '(11) 98888-0001',
+    id: 'emp1', name: 'Maria Funcionária', email: 'mariagendareboquent.com', phone: '(11) 98888-0001',
     document: '111.222.333-44', status: 'active', permissions: ['trailers', 'clients', 'rentals', 'calendar', 'maintenance'],
     lastActiveAt: '2026-03-08T14:30:00', createdAt: '2025-06-15', totalRentalsCreated: 47, totalClientsCreated: 12, totalMaintenanceCreated: 8,
   },
