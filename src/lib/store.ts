@@ -12,7 +12,7 @@ let employees: Employee[] = JSON.parse(JSON.stringify(mockEmployees));
 let sales: Sale[] = JSON.parse(JSON.stringify(mockSales));
 
 // Employee permissions (configurable by admin)
-export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
+export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports' | 'sales';
 export const ALL_PAGES: { id: PermissionPage; label: string }[] = [
   { id: 'trailers', label: 'Reboques' },
   { id: 'clients', label: 'Clientes' },
