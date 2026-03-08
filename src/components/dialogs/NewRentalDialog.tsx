@@ -179,10 +179,21 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
           </div>
 
           {/* Conflict warning */}
-          {conflict && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive text-sm">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>Este reboque já está reservado para o período selecionado.</span>
+          {conflict && conflictDetails.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-destructive text-sm font-semibold">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                <span>Este reboque já está reservado para o período selecionado.</span>
+              </div>
+              {conflictDetails.map((c, idx) => (
+                <div key={idx} className="text-sm text-muted-foreground pl-6">
+                  <span className="font-medium text-foreground">{c.cliente_nome}</span>
+                  {' — '}
+                  {c.data_retirada ? format(new Date(c.data_retirada), "dd/MM/yyyy") : '?'}
+                  {' até '}
+                  {c.data_devolucao ? format(new Date(c.data_devolucao), "dd/MM/yyyy") : '?'}
+                </div>
+              ))}
             </div>
           )}
 
