@@ -30,6 +30,23 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/trailers" element={<ProtectedRoute><TrailersPage /></ProtectedRoute>} />
+      <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+      <Route path="/rentals" element={<ProtectedRoute><RentalsPage /></ProtectedRoute>} />
+      <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+      <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
+      <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute adminOnly><SettingsPage /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -37,18 +54,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/trailers" element={<ProtectedRoute><TrailersPage /></ProtectedRoute>} />
-            <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
-            <Route path="/rentals" element={<ProtectedRoute><RentalsPage /></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-            <Route path="/maintenance" element={<ProtectedRoute><MaintenancePage /></ProtectedRoute>} />
-            <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute adminOnly><SettingsPage /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
