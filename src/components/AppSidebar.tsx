@@ -148,6 +148,7 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+      </SidebarContent>
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border">
         {!collapsed && user && (
