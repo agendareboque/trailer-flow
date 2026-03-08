@@ -3,7 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Search, Phone, Calendar } from 'lucide-react';
+import { Search, Phone, Calendar, FileText, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
@@ -11,6 +11,9 @@ interface Cliente {
   id: string;
   nome: string | null;
   telefone: string | null;
+  cpf: string | null;
+  endereco: string | null;
+  observacoes: string | null;
   created_at: string | null;
 }
 
@@ -30,7 +33,7 @@ export default function ClientsPage() {
       toast.error('Erro ao carregar clientes');
       console.error(error);
     } else {
-      setClients(data || []);
+      setClients((data as Cliente[]) || []);
     }
     setLoading(false);
   };
@@ -44,7 +47,8 @@ export default function ClientsPage() {
 
   const filtered = clients.filter(c =>
     (c.nome || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.telefone || '').includes(search)
+    (c.telefone || '').includes(search) ||
+    (c.cpf || '').includes(search)
   );
 
   const client = selectedClient ? clients.find(c => c.id === selectedClient) : null;
@@ -58,7 +62,7 @@ export default function ClientsPage() {
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome ou telefone..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 max-w-md" />
+        <Input placeholder="Buscar por nome, telefone ou CPF..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 max-w-md" />
       </div>
 
       {loading ? (
@@ -70,9 +74,13 @@ export default function ClientsPage() {
           {filtered.map((c, i) => (
             <motion.div key={c.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedClient(c.id)}>
               <h3 className="font-semibold font-heading">{c.nome || 'Sem nome'}</h3>
+              {c.cpf && <p className="text-xs text-muted-foreground">{c.cpf}</p>}
               <div className="space-y-1.5 text-sm text-muted-foreground mt-2">
                 {c.telefone && (
                   <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /><span>{c.telefone}</span></div>
+                )}
+                {c.endereco && (
+                  <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /><span className="truncate">{c.endereco}</span></div>
                 )}
                 {c.created_at && (
                   <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /><span>Desde {new Date(c.created_at).toLocaleDateString('pt-BR')}</span></div>
@@ -89,9 +97,17 @@ export default function ClientsPage() {
             <DialogHeader><DialogTitle className="font-heading">{client.nome || 'Sem nome'}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-muted-foreground">CPF/CNPJ</span><p className="font-medium">{client.cpf || '—'}</p></div>
                 <div><span className="text-muted-foreground">Telefone</span><p className="font-medium">{client.telefone || '—'}</p></div>
+                <div><span className="text-muted-foreground">Endereço</span><p className="font-medium">{client.endereco || '—'}</p></div>
                 <div><span className="text-muted-foreground">Cadastrado em</span><p className="font-medium">{client.created_at ? new Date(client.created_at).toLocaleDateString('pt-BR') : '—'}</p></div>
               </div>
+              {client.observacoes && (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Observações</span>
+                  <p className="mt-1 p-2 bg-muted rounded">{client.observacoes}</p>
+                </div>
+              )}
             </div>
           </DialogContent>
         )}
