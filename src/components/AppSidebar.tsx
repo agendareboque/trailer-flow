@@ -49,18 +49,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user, signOut, isAdmin, profilen, profile } = useAuth();
+  const { user, signOut, isAdmin, profilen, profilen, profile } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
   const visibleItems = mainItems.filter(item => {
     if (!item.permission) return true; // Dashboard always visible
-    if (isAdmin) return true;
- isAdminemployee');
-  });
-
-  return (
-    <Sidebar collapsible="icon">
+    if (isAdmin) retuisAdminllapsible="icon">
       <SidebarContent className="bg-sidebar">
         <div className="flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
           <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
@@ -130,7 +125,7 @@ export function AppSidebar() {
         {!collapsed && user && (
           <div className="px-3 py-2">
             <p className="text-sm font-medium text-sidebar-primary-foreground truncate">{user.name}</p>
-            <p className="text-xs text-sidebar-muted truncate">{user.email}</p>
+            <p className="textprofile?.nome || user.emailsidebar-muted truncate">{user.email}</p>
           </div>
         )}
         <SidebarMenu>
