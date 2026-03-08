@@ -56,9 +56,9 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-8">
             <Truck className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-4xl font-bold font-heading text-primary-foreground mb-4">TrailerRent</h1>
+          <h1 className="text-4xl font-bold font-heading text-primary-foreground mb-4">Agendareboque</h1>
           <p className="text-lg text-primary-foreground/80 max-w-md">
-            Sistema completo de gestão de aluguel de reboques. Gerencie sua frota, clientes e aluguéis em um só lugar.
+            Sistema de gestão de aluguel de reboques. Gerencie sua frota, clientes e aluguéis em um só lugar.
           </p>
         </motion.div>
       </div>
