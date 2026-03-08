@@ -32,23 +32,45 @@ export default function RentalsPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchRentals = async () => {
+    if (!empresaId) return;
+
     const { data, error } = await supabase
       .from('alugueis')
-      .select('*, clientes(nome), reboques(nome, placa)')
+      .select('*')
+      .eq('empresa_id', empresaId)
       .order('created_at', { ascending: false });
 
     if (error) {
       toast.error('Erro ao carregar aluguéis');
       console.error(error);
-    } else {
-      const mapped = (data || []).map((r: any) => ({
-        ...r,
-        cliente_nome: r.clientes?.nome || 'Desconhecido',
-        reboque_nome: r.reboques?.nome || 'Desconhecido',
-        reboque_placa: r.reboques?.placa || '—',
-      }));
-      setRentals(mapped);
+      setLoading(false);
+      return;
     }
+
+    const rows = data || [];
+    const clienteIds = [...new Set(rows.map(r => r.cliente_id).filter(Boolean))] as string[];
+    const reboqueIds = [...new Set(rows.map(r => r.reboque_id).filter(Boolean))] as string[];
+
+    const [clientesRes, reboquesRes] = await Promise.all([
+      clienteIds.length > 0
+        ? supabase.from('clientes').select('id, nome').in('id', clienteIds)
+        : Promise.resolve({ data: [] }),
+      reboqueIds.length > 0
+        ? supabase.from('reboques').select('id, nome, placa').in('id', reboqueIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const clienteMap = Object.fromEntries((clientesRes.data || []).map(c => [c.id, c.nome]));
+    const reboqueMap = Object.fromEntries((reboquesRes.data || []).map(r => [r.id, r]));
+
+    const mapped = rows.map(r => ({
+      ...r,
+      cliente_nome: (r.cliente_id && clienteMap[r.cliente_id]) || 'Desconhecido',
+      reboque_nome: (r.reboque_id && reboqueMap[r.reboque_id]?.nome) || 'Desconhecido',
+      reboque_placa: (r.reboque_id && reboqueMap[r.reboque_id]?.placa) || '—',
+    }));
+
+    setRentals(mapped);
     setLoading(false);
   };
 
