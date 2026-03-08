@@ -3,18 +3,20 @@ import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/hooks/use-store';
 import { store } from '@/lib/store';
-import { getPaymentLabel } from '@/lib/mock-data';
+import { getPaymentLabel, Rental } from '@/lib/mock-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle, CreditCard } from 'lucide-react';
+import { CheckCircle, XCircle, CreditCard, Pencil, Tag } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { EditRentalDialog } from '@/components/dialogs/EditRentalDialog';
 
 export default function RentalsPage() {
   const { rentals, clients, trailers, models } = useStore();
   const [filterStatus, setFilterStatus] = useState('all');
+  const [editingRental, setEditingRental] = useState<Rental | null>(null);
 
   const filtered = rentals.filter(r =>
     filterStatus === 'all' || r.status === filterStatus
@@ -58,6 +60,7 @@ export default function RentalsPage() {
           const trailer = trailers.find(t => t.id === rental.trailerId);
           const model = trailer ? models.find(m => m.id === trailer.modelId) : null;
           const paymentLabel = getPaymentLabel(rental.paymentMethod);
+          const hasDiscount = rental.discountType && rental.discountAmount;
 
           return (
             <motion.div
@@ -70,8 +73,9 @@ export default function RentalsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold cursor-pointer hover:scale-105 transition-transform"
                     style={{ backgroundColor: trailer?.color + '20', color: trailer?.color }}
+                    onClick={() => (rental.status === 'active' || rental.status === 'scheduled') && setEditingRental(rental)}
                   >
                     {trailer?.plate.slice(0, 3)}
                   </div>
@@ -80,12 +84,19 @@ export default function RentalsPage() {
                     <p className="text-sm text-muted-foreground">
                       {model?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
                     </p>
-                    {paymentLabel && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <CreditCard className="h-3 w-3" />
-                        {paymentLabel}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3 mt-0.5">
+                      {paymentLabel && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <CreditCard className="h-3 w-3" />{paymentLabel}
+                        </span>
+                      )}
+                      {hasDiscount && (
+                        <span className="text-xs text-success flex items-center gap-1">
+                          <Tag className="h-3 w-3" />
+                          {rental.discountType === 'percentage' ? `${rental.discountAmount}%` : `R$ ${rental.discountAmount?.toFixed(2)}`} desc.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -94,6 +105,9 @@ export default function RentalsPage() {
                     <p className="text-muted-foreground">
                       {format(new Date(rental.startDate), "dd MMM", { locale: ptBR })} — {format(new Date(rental.endDate), "dd MMM", { locale: ptBR })}
                     </p>
+                    {hasDiscount && rental.basePrice !== rental.totalPrice && (
+                      <p className="text-xs text-muted-foreground line-through">R$ {rental.basePrice.toFixed(2)}</p>
+                    )}
                     <p className="font-semibold font-heading text-lg">
                       R$ {rental.totalPrice.toFixed(2)}
                     </p>
@@ -101,6 +115,9 @@ export default function RentalsPage() {
                   <StatusBadge status={rental.status} />
                   {(rental.status === 'active' || rental.status === 'scheduled') && (
                     <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setEditingRental(rental)} title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Concluir">
                         <CheckCircle className="h-4 w-4" />
                       </Button>
@@ -120,6 +137,14 @@ export default function RentalsPage() {
         <div className="text-center py-12 text-muted-foreground">
           Nenhum aluguel encontrado.
         </div>
+      )}
+
+      {editingRental && (
+        <EditRentalDialog
+          open={!!editingRental}
+          onOpenChange={(v) => !v && setEditingRental(null)}
+          rental={editingRental}
+        />
       )}
     </AppLayout>
   );

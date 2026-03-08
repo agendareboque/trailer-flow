@@ -103,13 +103,13 @@ export const mockClients: Client[] = [
 ];
 
 export const mockRentals: Rental[] = [
-  { id: 'r1', clientId: 'c1', trailerId: 't2', startDate: '2026-03-01', endDate: '2026-03-10', estimatedKm: 500, totalPrice: 800, status: 'active', paymentMethod: 'pix', createdAt: '2026-02-28' },
-  { id: 'r2', clientId: 'c4', trailerId: 't5', startDate: '2026-03-03', endDate: '2026-03-15', estimatedKm: 1200, totalPrice: 2400, status: 'active', paymentMethod: 'credit_card', createdAt: '2026-03-02' },
-  { id: 'r3', clientId: 'c2', trailerId: 't8', startDate: '2026-03-05', endDate: '2026-03-12', estimatedKm: 800, totalPrice: 1750, status: 'active', paymentMethod: 'cash', createdAt: '2026-03-04' },
-  { id: 'r4', clientId: 'c1', trailerId: 't1', startDate: '2026-02-10', endDate: '2026-02-20', estimatedKm: 600, totalPrice: 800, status: 'completed', paymentMethod: 'pix', createdAt: '2026-02-09' },
-  { id: 'r5', clientId: 'c3', trailerId: 't3', startDate: '2026-02-15', endDate: '2026-02-25', estimatedKm: 900, totalPrice: 1200, status: 'completed', paymentMethod: 'boleto', createdAt: '2026-02-14' },
-  { id: 'r6', clientId: 'c5', trailerId: 't6', startDate: '2026-01-20', endDate: '2026-01-30', estimatedKm: 1000, totalPrice: 2000, status: 'completed', paymentMethod: 'debit_card', createdAt: '2026-01-19' },
-  { id: 'r7', clientId: 'c3', trailerId: 't7', startDate: '2026-02-01', endDate: '2026-02-05', estimatedKm: 200, totalPrice: 1000, status: 'cancelled', createdAt: '2026-01-31' },
+  { id: 'r1', clientId: 'c1', trailerId: 't2', startDate: '2026-03-01', endDate: '2026-03-10', estimatedKm: 500, basePrice: 800, totalPrice: 800, status: 'active', paymentMethod: 'pix', createdAt: '2026-02-28' },
+  { id: 'r2', clientId: 'c4', trailerId: 't5', startDate: '2026-03-03', endDate: '2026-03-15', estimatedKm: 1200, basePrice: 2400, totalPrice: 2400, status: 'active', paymentMethod: 'credit_card', createdAt: '2026-03-02' },
+  { id: 'r3', clientId: 'c2', trailerId: 't8', startDate: '2026-03-05', endDate: '2026-03-12', estimatedKm: 800, basePrice: 1750, totalPrice: 1750, status: 'active', paymentMethod: 'cash', createdAt: '2026-03-04' },
+  { id: 'r4', clientId: 'c1', trailerId: 't1', startDate: '2026-02-10', endDate: '2026-02-20', estimatedKm: 600, basePrice: 800, totalPrice: 800, status: 'completed', paymentMethod: 'pix', createdAt: '2026-02-09' },
+  { id: 'r5', clientId: 'c3', trailerId: 't3', startDate: '2026-02-15', endDate: '2026-02-25', estimatedKm: 900, basePrice: 1200, totalPrice: 1200, status: 'completed', paymentMethod: 'boleto', createdAt: '2026-02-14' },
+  { id: 'r6', clientId: 'c5', trailerId: 't6', startDate: '2026-01-20', endDate: '2026-01-30', estimatedKm: 1000, basePrice: 2000, totalPrice: 2000, status: 'completed', paymentMethod: 'debit_card', createdAt: '2026-01-19' },
+  { id: 'r7', clientId: 'c3', trailerId: 't7', startDate: '2026-02-01', endDate: '2026-02-05', estimatedKm: 200, basePrice: 1000, totalPrice: 1000, status: 'cancelled', createdAt: '2026-01-31' },
 ];
 
 export const mockMaintenance: MaintenanceRecord[] = [
