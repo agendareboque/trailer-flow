@@ -90,6 +90,21 @@ export interface MaintenanceRecord {
   km: number;
 }
 
+export interface Sale {
+  id: string;
+  type: 'purchase' | 'sale';
+  trailerId?: string;
+  trailerName: string;
+  trailerPlate: string;
+  buyerOrSeller: string;
+  document: string;
+  price: number;
+  date: string;
+  paymentMethod: string;
+  notes: string;
+  createdAt: string;
+}
+
 export const mockEmployees: Employee[] = [
   {
     id: 'emp1', name: 'Maria Funcionária', email: 'maria@trailerrent.com', phone: '(11) 98888-0001',
@@ -158,6 +173,12 @@ export const mockMaintenance: MaintenanceRecord[] = [
   { id: 'mt3', trailerId: 't3', date: '2025-12-20', description: 'Troca de rolamentos', cost: 320, km: 20000 },
   { id: 'mt4', trailerId: 't4', date: '2026-03-05', description: 'Reparo na carroceria e pintura', cost: 1200, km: 15000 },
   { id: 'mt5', trailerId: 't5', date: '2026-01-10', description: 'Troca de óleo e filtros', cost: 250, km: 30000 },
+];
+
+export const mockSales: Sale[] = [
+  { id: 's1', type: 'purchase', trailerName: 'Carretinha Leve #1', trailerPlate: 'ABC-1234', buyerOrSeller: 'Reboques Brasil LTDA', document: '12.345.678/0001-90', price: 15000, date: '2025-01-10', paymentMethod: 'boleto', notes: 'Compra inicial da frota', createdAt: '2025-01-10' },
+  { id: 's2', type: 'purchase', trailerName: 'Reboque Pesado #1', trailerPlate: 'MNO-7890', buyerOrSeller: 'Auto Reboques SP', document: '98.765.432/0001-10', price: 32000, date: '2025-03-15', paymentMethod: 'pix', notes: '', createdAt: '2025-03-15' },
+  { id: 's3', type: 'sale', trailerName: 'Carretinha Antiga', trailerPlate: 'OLD-0001', buyerOrSeller: 'Pedro Comprador', document: '111.222.333-44', price: 8500, date: '2025-11-20', paymentMethod: 'pix', notes: 'Reboque antigo vendido', createdAt: '2025-11-20' },
 ];
 
 export function getModelById(id: string) {

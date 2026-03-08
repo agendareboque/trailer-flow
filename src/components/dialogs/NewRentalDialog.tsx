@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useStore } from '@/hooks/use-store';
 import { store } from '@/lib/store';
 import { toast } from '@/hooks/use-toast';
-import { differenceInDays, format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import { differenceInDays, format, parseISO, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AlertTriangle, Percent, DollarSign } from 'lucide-react';
+import { InlineNewClientForm } from './InlineNewClientForm';
 
 interface Props {
   open: boolean;
@@ -127,6 +128,7 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
                 ))}
               </SelectContent>
             </Select>
+            <InlineNewClientForm onClientCreated={(id) => setClientId(id)} />
           </div>
           <div>
             <Label>Reboque</Label>

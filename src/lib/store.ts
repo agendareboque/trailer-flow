@@ -1,6 +1,6 @@
 // Reactive data store for TrailerRent
-import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees } from './mock-data';
-import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee } from './mock-data';
+import { mockTrailers, mockClients, mockRentals, mockMaintenance, mockModels, mockEmployees, mockSales } from './mock-data';
+import type { TrailerUnit, Client, Rental, MaintenanceRecord, TrailerModel, Employee, Sale } from './mock-data';
 
 // Deep clone initial data so mutations don't affect imports
 let trailers: TrailerUnit[] = JSON.parse(JSON.stringify(mockTrailers));
@@ -9,9 +9,10 @@ let rentals: Rental[] = JSON.parse(JSON.stringify(mockRentals));
 let maintenance: MaintenanceRecord[] = JSON.parse(JSON.stringify(mockMaintenance));
 let models: TrailerModel[] = JSON.parse(JSON.stringify(mockModels));
 let employees: Employee[] = JSON.parse(JSON.stringify(mockEmployees));
+let sales: Sale[] = JSON.parse(JSON.stringify(mockSales));
 
 // Employee permissions (configurable by admin)
-export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports';
+export type PermissionPage = 'trailers' | 'clients' | 'rentals' | 'calendar' | 'maintenance' | 'financial' | 'reports' | 'sales';
 export const ALL_PAGES: { id: PermissionPage; label: string }[] = [
   { id: 'trailers', label: 'Reboques' },
   { id: 'clients', label: 'Clientes' },
@@ -46,6 +47,7 @@ export const store = {
   getModels: () => models,
   getEmployeePermissions: () => employeePermissions,
   getEmployees: () => employees,
+  getSales: () => sales,
 
   getTrailerById: (id: string) => trailers.find(t => t.id === id),
   getClientById: (id: string) => clients.find(c => c.id === id),
@@ -323,5 +325,22 @@ export const store = {
       const priority = { danger: 0, warning: 1, info: 2 };
       return priority[a.type] - priority[b.type];
     });
+  },
+
+  // Sales management
+  addSale(data: Omit<Sale, 'id' | 'createdAt'>) {
+    const sale: Sale = {
+      ...data,
+      id: 's' + Date.now(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    sales = [sale, ...sales];
+    notify();
+    return sale;
+  },
+
+  removeSale(saleId: string) {
+    sales = sales.filter(s => s.id !== saleId);
+    notify();
   },
 };
