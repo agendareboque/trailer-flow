@@ -1,32 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
-import { useStore } from '@/hooks/use-store';
-import { store } from '@/lib/store';
-import { getPaymentLabel, Rental } from '@/lib/mock-data';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, XCircle, CreditCard, Pencil, Tag } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { EditRentalDialog } from '@/components/dialogs/EditRentalDialog';
-import { CheckoutRentalDialog } from '@/components/dialogs/CheckoutRentalDialog';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface Aluguel {
+  id: string;
+  cliente_id: string | null;
+  reboque_id: string | null;
+  data_retirada: string | null;
+  data_devolucao: string | null;
+  valor: number | null;
+  status: string | null;
+  created_at: string | null;
+  cliente_nome?: string;
+  reboque_nome?: string;
+  reboque_placa?: string;
+}
 
 export default function RentalsPage() {
-  const { rentals, clients, trailers } = useStore();
+  const { empresaId } = useAuth();
+  const [rentals, setRentals] = useState<Aluguel[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
-  const [editingRental, setEditingRental] = useState<Rental | null>(null);
-  const [checkoutRental, setCheckoutRental] = useState<Rental | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRentals = async () => {
+    const { data, error } = await supabase
+      .from('alugueis')
+      .select('*, clientes(nome), reboques(nome, placa)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Erro ao carregar aluguéis');
+      console.error(error);
+    } else {
+      const mapped = (data || []).map((r: any) => ({
+        ...r,
+        cliente_nome: r.clientes?.nome || 'Desconhecido',
+        reboque_nome: r.reboques?.nome || 'Desconhecido',
+        reboque_placa: r.reboques?.placa || '—',
+      }));
+      setRentals(mapped);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRentals();
+    const handler = () => fetchRentals();
+    window.addEventListener('rentals-updated', handler);
+    return () => window.removeEventListener('rentals-updated', handler);
+  }, []);
 
   const filtered = rentals.filter(r =>
     filterStatus === 'all' || r.status === filterStatus
   );
 
-  const handleCancel = (rentalId: string) => {
-    store.cancelRental(rentalId);
-    toast({ title: 'Aluguel cancelado' });
+  const handleCancel = async (id: string) => {
+    const { error } = await supabase.from('alugueis').update({ status: 'cancelado' }).eq('id', id);
+    if (error) {
+      toast.error('Erro ao cancelar');
+    } else {
+      toast.success('Aluguel cancelado');
+      fetchRentals();
+    }
+  };
+
+  const handleComplete = async (id: string) => {
+    const { error } = await supabase.from('alugueis').update({ status: 'concluido' }).eq('id', id);
+    if (error) {
+      toast.error('Erro ao concluir');
+    } else {
+      toast.success('Aluguel concluído');
+      fetchRentals();
+    }
+  };
+
+  const getStatusForBadge = (status: string | null) => {
+    switch (status) {
+      case 'ativo': return 'active';
+      case 'concluido': return 'completed';
+      case 'cancelado': return 'cancelled';
+      case 'agendado': return 'scheduled';
+      default: return status || 'active';
+    }
   };
 
   return (
@@ -38,83 +102,44 @@ export default function RentalsPage() {
 
       <div className="mb-6">
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Ativos</SelectItem>
-            <SelectItem value="scheduled">Agendados</SelectItem>
-            <SelectItem value="completed">Concluídos</SelectItem>
-            <SelectItem value="cancelled">Cancelados</SelectItem>
+            <SelectItem value="ativo">Ativos</SelectItem>
+            <SelectItem value="agendado">Agendados</SelectItem>
+            <SelectItem value="concluido">Concluídos</SelectItem>
+            <SelectItem value="cancelado">Cancelados</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="space-y-3">
-        {filtered.map((rental, i) => {
-          const client = clients.find(c => c.id === rental.clientId);
-          const trailer = trailers.find(t => t.id === rental.trailerId);
-          const paymentLabel = getPaymentLabel(rental.paymentMethod);
-          const hasDiscount = rental.discountType && rental.discountAmount;
-
-          return (
-            <motion.div
-              key={rental.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow"
-            >
+      {loading ? (
+        <p className="text-muted-foreground text-sm">Carregando...</p>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((rental, i) => (
+            <motion.div key={rental.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl border p-5 hover:shadow-md transition-shadow">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold cursor-pointer hover:scale-105 transition-transform"
-                    style={{ backgroundColor: trailer?.color + '20', color: trailer?.color }}
-                    onClick={() => (rental.status === 'active' || rental.status === 'scheduled') && setEditingRental(rental)}
-                  >
-                    {trailer?.plate.slice(0, 3)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold font-heading">{client?.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {trailer?.name} • {trailer?.plate} • {rental.estimatedKm.toLocaleString()} km est.
-                    </p>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      {paymentLabel && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <CreditCard className="h-3 w-3" />{paymentLabel}
-                        </span>
-                      )}
-                      {hasDiscount && (
-                        <span className="text-xs text-success flex items-center gap-1">
-                          <Tag className="h-3 w-3" />
-                          {rental.discountType === 'percentage' ? `${rental.discountAmount}%` : `R$ ${rental.discountAmount?.toFixed(2)}`} desc.
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                <div>
+                  <h3 className="font-semibold font-heading">{rental.cliente_nome}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {rental.reboque_nome} • {rental.reboque_placa}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm">
                   <div className="text-right">
                     <p className="text-muted-foreground">
-                      {format(new Date(rental.startDate), "dd MMM", { locale: ptBR })} — {format(new Date(rental.endDate), "dd MMM", { locale: ptBR })}
+                      {rental.data_retirada ? format(new Date(rental.data_retirada), "dd MMM", { locale: ptBR }) : '—'} — {rental.data_devolucao ? format(new Date(rental.data_devolucao), "dd MMM", { locale: ptBR }) : '—'}
                     </p>
-                    {hasDiscount && rental.basePrice !== rental.totalPrice && (
-                      <p className="text-xs text-muted-foreground line-through">R$ {rental.basePrice.toFixed(2)}</p>
-                    )}
                     <p className="font-semibold font-heading text-lg">
-                      R$ {rental.totalPrice.toFixed(2)}
+                      R$ {(rental.valor || 0).toFixed(2)}
                     </p>
                   </div>
-                  <StatusBadge status={rental.status} />
-                  {(rental.status === 'active' || rental.status === 'scheduled') && (
+                  <StatusBadge status={getStatusForBadge(rental.status)} />
+                  {rental.status === 'ativo' && (
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setEditingRental(rental)} title="Editar">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => setCheckoutRental(rental)} title="Dar Baixa">
+                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Dar Baixa">
                         <CheckCircle className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleCancel(rental.id)} title="Cancelar">
@@ -125,30 +150,12 @@ export default function RentalsPage() {
                 </div>
               </div>
             </motion.div>
-          );
-        })}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          Nenhum aluguel encontrado.
+          ))}
         </div>
       )}
 
-      {editingRental && (
-        <EditRentalDialog
-          open={!!editingRental}
-          onOpenChange={(v) => !v && setEditingRental(null)}
-          rental={editingRental}
-        />
-      )}
-
-      {checkoutRental && (
-        <CheckoutRentalDialog
-          open={!!checkoutRental}
-          onOpenChange={(v) => !v && setCheckoutRental(null)}
-          rental={checkoutRental}
-        />
+      {!loading && filtered.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">Nenhum aluguel encontrado.</div>
       )}
     </AppLayout>
   );

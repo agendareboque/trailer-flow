@@ -20,14 +20,16 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
+  if (loading) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Carregando...</div>;
   if (user) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
