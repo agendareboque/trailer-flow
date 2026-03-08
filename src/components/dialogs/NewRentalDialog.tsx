@@ -266,6 +266,11 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
             </div>
           </div>
 
+          {/* Date validation error */}
+          {dateError && (
+            <p className="text-sm text-destructive font-medium">{dateError}</p>
+          )}
+
           {/* Conflict warning */}
           {conflict && conflictDetails.length > 0 && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
