@@ -49,14 +49,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user, signOut, isAdmin, profile } = useAuth();
+  const { user, signOut, isAdmin, profilen, profile } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
   const visibleItems = mainItems.filter(item => {
     if (!item.permission) return true; // Dashboard always visible
     if (isAdmin) return true;
-    return store.hasPermission(item.permission, user?.role || 'employee');
+ isAdminemployee');
   });
 
   return (
