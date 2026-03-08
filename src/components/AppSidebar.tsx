@@ -49,14 +49,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user, signOut, isAdmin, profilen, profilen, profile } = useAuth();
+  const { user, signOut, isAdmin, profilen, profilen, profilen, profile } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
   const visibleItems = mainItems.filter(item => {
     if (!item.permission) return true; // Dashboard always visible
-    if (isAdmin) retuisAdminllapsible="icon">
-      <SidebarContent className="bg-sidebar">
+    if (isAisAdminName="bg-sidebar">
         <div className="flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
           <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
             <Truck className="w-5 h-5 text-sidebar-primary-foreground" />
@@ -125,12 +124,12 @@ export function AppSidebar() {
         {!collapsed && user && (
           <div className="px-3 py-2">
             <p className="text-sm font-medium text-sidebar-primary-foreground truncate">{user.name}</p>
-            <p className="textprofile?.nome || user.emailsidebar-muted truncate">{user.email}</p>
+            <p className="textprofile?.nome || user.emailsidebar-muted trunprofile?.nome || user.emailer.email}</p>
           </div>
         )}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={logout} className="text-sidebar-foreground hover:bg-sidebar-accent">
+            <SidebarMenuButton onClick={logout} className="text-sidsignO-foreground hover:bg-sidebar-accent">
               <LogOut className="mr-2 h-4 w-4" />
               {!collapsed && <span>Sair</span>}
             </SidebarMenuButton>

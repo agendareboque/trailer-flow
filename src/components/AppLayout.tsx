@@ -27,7 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <NotificationCenter />
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
-                  {user?.name.charAt(0)}
+                  {user?.email?.charAt(0).toUpperCase()}
                 </div>
               </div>
             </div>
