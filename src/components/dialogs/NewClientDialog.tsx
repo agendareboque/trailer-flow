@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function NewClientDialog({ open, onOpenChange, onClientCreated }: Props) {
+  const { empresaId } = useAuth();
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [cpf, setCpf] = useState('');
@@ -33,6 +35,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreated }: Props) 
       cpf: cpf || null,
       endereco: endereco || null,
       observacoes: observacoes || null,
+      empresa_id: empresaId,
     });
     setLoading(false);
 
