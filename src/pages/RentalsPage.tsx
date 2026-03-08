@@ -86,37 +86,30 @@ export default function RentalsPage() {
   );
 
   const handleCancel = async (id: string) => {
+    const rental = rentals.find(r => r.id === id);
     const { error } = await supabase.from('alugueis').update({ status: 'cancelado' }).eq('id', id);
     if (error) {
       toast.error('Erro ao cancelar');
     } else {
+      if (rental?.reboque_id) {
+        await supabase.from('reboques').update({ status: 'disponivel' }).eq('id', rental.reboque_id);
+      }
       toast.success('Aluguel cancelado');
       fetchRentals();
     }
   };
 
-  const handleComplete = async (id: string) => {
+  const handleFinalize = async (id: string) => {
     const rental = rentals.find(r => r.id === id);
-    const { error } = await supabase.from('alugueis').update({ status: 'concluido' }).eq('id', id);
+    const { error } = await supabase.from('alugueis').update({ status: 'finalizado' }).eq('id', id);
     if (error) {
-      toast.error('Erro ao concluir');
+      toast.error('Erro ao finalizar');
     } else {
-      // Set trailer back to disponivel
       if (rental?.reboque_id) {
         await supabase.from('reboques').update({ status: 'disponivel' }).eq('id', rental.reboque_id);
       }
-      toast.success('Aluguel concluído');
+      toast.success('Aluguel finalizado');
       fetchRentals();
-    }
-  };
-
-  const getStatusForBadge = (status: string | null) => {
-    switch (status) {
-      case 'ativo': return 'active';
-      case 'concluido': return 'completed';
-      case 'cancelado': return 'cancelled';
-      case 'agendado': return 'scheduled';
-      default: return status || 'active';
     }
   };
 
@@ -132,9 +125,9 @@ export default function RentalsPage() {
           <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="ativo">Ativos</SelectItem>
-            <SelectItem value="agendado">Agendados</SelectItem>
-            <SelectItem value="concluido">Concluídos</SelectItem>
+            <SelectItem value="reservado">Reservados</SelectItem>
+            <SelectItem value="em_uso">Em Uso</SelectItem>
+            <SelectItem value="finalizado">Finalizados</SelectItem>
             <SelectItem value="cancelado">Cancelados</SelectItem>
           </SelectContent>
         </Select>
@@ -163,12 +156,14 @@ export default function RentalsPage() {
                       R$ {(rental.valor || 0).toFixed(2)}
                     </p>
                   </div>
-                  <StatusBadge status={getStatusForBadge(rental.status)} />
-                  {rental.status === 'ativo' && (
+                  <StatusBadge status={rental.status || 'reservado'} />
+                  {(rental.status === 'reservado' || rental.status === 'em_uso') && (
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleComplete(rental.id)} title="Dar Baixa">
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
+                      {rental.status === 'em_uso' && (
+                        <Button size="sm" variant="ghost" className="text-success hover:text-success" onClick={() => handleFinalize(rental.id)} title="Finalizar Aluguel">
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleCancel(rental.id)} title="Cancelar">
                         <XCircle className="h-4 w-4" />
                       </Button>
