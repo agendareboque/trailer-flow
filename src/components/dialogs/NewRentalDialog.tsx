@@ -50,10 +50,18 @@ export function NewRentalDialog({ open, onOpenChange }: Props) {
   const selectedTrailer = trailers.find(t => t.id === reboqueId);
   const dailyRate = selectedTrailer?.valor_diaria || 0;
 
-  const days = useMemo(() => {
-    if (!dataRetirada || !dataDevolucao) return 0;
-    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  const dateError = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao) return '';
+    if (new Date(dataDevolucao) < new Date(dataRetirada)) {
+      return 'A data de devolução não pode ser anterior à data de retirada.';
+    }
+    return '';
   }, [dataRetirada, dataDevolucao]);
+
+  const days = useMemo(() => {
+    if (!dataRetirada || !dataDevolucao || dateError) return 0;
+    return Math.max(differenceInDays(new Date(dataDevolucao), new Date(dataRetirada)), 1);
+  }, [dataRetirada, dataDevolucao, dateError]);
 
   const basePrice = dailyRate * days;
 
